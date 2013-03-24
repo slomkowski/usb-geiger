@@ -7,12 +7,13 @@
 #include <libusb-1.0/libusb.h>
 #include <string>
 #include <sstream>
+#include <iostream>
 
 #include "USBRawCommunicator.h"
 
 using namespace USB;
 
-static const int BUFFER_SIZE = 32;
+static const int BUFFER_SIZE = 512;
 static const int MESSAGE_TIMEOUT = 2000; // ms
 
 RawCommunicator::RawCommunicator() throw (CommException) {
@@ -52,6 +53,7 @@ RawCommunicator::RawCommunicator() throw (CommException) {
 
 			if ((VENDOR_NAME.compare(vendorString) == 0) && (DEVICE_NAME.compare(productString) == 0)) {
 				foundGeigerDevice = true;
+				break;
 			} else {
 				libusb_close(devHandle);
 			}
@@ -77,7 +79,10 @@ void USB::RawCommunicator::sendMessage(Request request, unsigned int value) {
 		MESSAGE_TIMEOUT);
 
 	if (status < 0) {
-		throw CommException("error at communication with the device");
+		std::string mesg = "error at sending data to the device (";
+		mesg += libusb_error_name(status);
+		mesg += ")";
+		throw CommException(mesg);
 	}
 }
 
@@ -89,7 +94,10 @@ unsigned int USB::RawCommunicator::recvMessage(Request request) {
 		sizeof(buffer), MESSAGE_TIMEOUT);
 
 	if (status < 0) {
-		throw CommException("error at communication with the device");
+		std::string mesg = "error at receiving data from the device (";
+		mesg += libusb_error_name(status);
+		mesg += ")";
+		throw CommException(mesg);
 	} else if (status < 2) {
 		throw CommException("device sent less than two bytes");
 	}
