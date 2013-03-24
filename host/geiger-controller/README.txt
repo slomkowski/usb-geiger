@@ -3,8 +3,6 @@ USB Geiger counter
 
 License: GNU GPL v3.0.
 
-Program ten udostępnia wszystkie funkcje licznika Geigera z poziomu linii komend. Listę można sprawdzić komendą:
-
 Program provides simple command-line interface to all functions of Geiger device. To display the full list, type:
 
 ./geiger-controller --help
