@@ -1,0 +1,41 @@
+Partlist
+
+Exported from usb-geiger.sch at 24-03-2013 21:28
+
+EAGLE Version 6.4.0 Copyright (c) 1988-2013 CadSoft
+
+Assembly variant: 
+
+Part     Value          Device            Package      Library  Sheet
+
+C1       47u            CPOL-EUE2.5-6     E2,5-6       rcl      1
+C2       100n           C-EU050-025X075   C050-025X075 rcl      1
+C3       22p            C-EU025-025X050   C025-025X050 rcl      1
+C4       22p            C-EU025-025X050   C025-025X050 rcl      1
+C5       220u           CPOL-EUE5-10.5    E5-10,5      rcl      1
+C6       100n           C-EU050-025X075   C050-025X075 rcl      1
+C7       100n/600V      C-EU225-113X268   C225-113X268 rcl      1
+C8       10n            C-EU050-025X075   C050-025X075 rcl      1
+D1       3V6            ZENER-DIODEDO34-7 DO34Z7       diode    1
+D2       3V6            ZENER-DIODEDO34-7 DO34Z7       diode    1
+D3       1N4937         1N4933            DO41-10      diode    1
+D4       BAT42          BAT42             DO35-10      diode    1
+GM1      STS-5          STS-5             STS-5        geiger   1
+IC1      TINY24         TINY24/44/84-PU   DIL14        avr-7    1
+L1       10m            L-US0207/5V       0207/5V      rcl      1
+LED1                    LED3MM            LED3MM       led      1
+Q1       16MHz          XTAL/S            QS           special  1
+R1       2k2            R-EU_0207/10      0207/10      rcl      1
+R2       68             R-EU_0207/10      0207/10      rcl      1
+R3       68             R-EU_0207/10      0207/10      rcl      1
+R4       1k5            R-EU_0207/10      0207/10      rcl      1
+R5       1k             R-EU_0207/10      0207/10      rcl      1
+R6       1M             R-EU_0207/10      0207/10      rcl      1
+R7       1M             R-EU_0207/10      0207/10      rcl      1
+R8       4k7            R-EU_0207/10      0207/10      rcl      1
+R9       1M             R-EU_0207/10      0207/10      rcl      1
+R10      4M7            R-EU_0207/10      0207/10      rcl      1
+R12      330k           R-EU_0207/10      0207/10      rcl      1
+T1       MPSA44         MPSA44            TO92-EBC     geiger   1
+X1       PN61729-S      PN61729-S         PN61729-S    con-berg 1
+X2                      PINHD-2X5         2X05         pinhead  1

@@ -1,0 +1,14 @@
+Name	STS-5
+Working Voltage	360 - 440V
+Initial Voltage	280 - 330V
+ Plateau Length	80V
+Plateau Slope 	0.125% / 1V
+Innerent counter background (cps) 	0.45 Pulses/sec
+Pulse Sensitivity 	24 Pulses/sec
+Interelectrode Capacitance	7pF
+Load Resistance	5 - 10 MOhms
+ Working Temperature Range	-40 +50 С
+Length	110mm
+Diameter	9mm
+
+27 per second - 1 mR/h ~= 10 µSv/h
