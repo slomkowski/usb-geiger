@@ -44,6 +44,7 @@ usbMsgLen_t usbFunctionSetup(uchar data[8]) {
 	case USB_RQ_SET_INTERVAL:
 		programmedInterval = (rq->wValue.bytes[1] * 256) + rq->wValue.bytes[0];
 		actualCounts = 0;
+		countsPerInterval = 0;
 		return 0;
 	};
 
