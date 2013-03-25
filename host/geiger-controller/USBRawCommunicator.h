@@ -57,7 +57,7 @@ namespace USB {
 
 		/**
 		 * Sets the time period of counting cycle. After that time, the counts value is transferred to output buffer
-		 * and accessible for getting.
+		 * and accessible for getting. CPI value is cleared during this operation.
 		 */
 		void setRawInterval(unsigned int rawInterval) throw (CommException);
 		/**
