@@ -37,7 +37,7 @@ void USB::ConvenientCommunicator::setInterval(int seconds) {
 }
 
 int USB::ConvenientCommunicator::getVoltage() {
-	return round(1.1 * (double) getRawVoltage()) / (voltDividerFactor * 1024.0);
+	return round(1.1 * (double) getRawVoltage() / (voltDividerFactor * 1024.0));
 }
 
 void USB::ConvenientCommunicator::setVoltage(int volts) {

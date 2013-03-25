@@ -19,5 +19,4 @@ API_KEY=your_api_key_goes_here
 curl --request PUT \
      --data-binary "$JSON" \
      --header "X-ApiKey: $API_KEY" \
-     --verbose \
      http://api.cosm.com/v2/feeds/$FEED_ID

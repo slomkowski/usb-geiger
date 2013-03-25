@@ -1,12 +1,27 @@
 #!/usr/bin/python2
+# -*- encoding: utf8 -*-
 
+import ConfigParser
 import usbcomm
+import sys
+import cosm
 
-comm = usbcomm.RawConnector()
+CONFIG_FILE_NAME = 'configuration.ini'
 
-print("test")
-print(comm.getRawVoltage())
+cosmEnabled = True
+mysqlEnabled = False
 
-comm.setRawInterval(13000)
+conf = ConfigParser.SafeConfigParser()
+try:
+	conf.readfp(open(CONFIG_FILE_NAME))
+except IOError as exp:
+	sys.stderr.write("Error at loading configuration file: " + exp.strerror)
+	sys.exit(1)
+
+comm = usbcomm.Connector(conf)
 
 print(comm)
+
+if cosmEnabled:
+	cosm = cosm.PachubeUpdater(conf)
+	cosm.update(comm.getRadiation(), comm.getCPM())

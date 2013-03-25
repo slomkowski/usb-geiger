@@ -1,13 +1,18 @@
+# -*- encoding: utf8 -*-
+
 import usb.core
 import usb.util
+import sys
 
+# these values are provided with V-USB for shared use
 VENDOR_ID = 0x16c0
 DEVICE_ID = 0x05df
 
+# these distinguish the Geiger counter from other devices with the same vendor and device IDs
 VENDOR_NAME = "slomkowski.eu"
 DEVICE_NAME = "USB Geiger"
 
-# requests
+# request numbers
 GET_CPI = 10
 SET_INTERVAL = 20
 GET_INTERVAL = 21
@@ -15,8 +20,21 @@ SET_VOLTAGE = 30
 GET_VOLTAGE = 31
 ACKNOWLEDGE_UNCHECKED_COUNT = 40
 
+# default values
+TUBE_SENSITIVITY = 25.0
+VOLTAGE_DIVIDER_UPPER_RESISTOR = 2000
+VOLTAGE_DIVIDER_LOWER_RESISTOR = 4.7
+TUBE_VOLTAGE = 390
+
+# unmodifiable values
+TIMER_TICKS_PER_SECOND = 100
+MIN_VOLTAGE = 50
+MAX_VOLTAGE = 450
+
 class CommException(Exception):
+	"This exception is thrown if an USB communication error with the Geiger device occurs."
 	pass
+
 
 class RawConnector(object):
 	"""Low level class for Geiger device communication. It handles all libusb calls and supports all low level functions.
@@ -31,7 +49,6 @@ class RawConnector(object):
 		"""Initiates the class and opens the device. Warning! The constructor assumes that only one Geiger device
 		is connected to the bus. Otherwise, it opens the first-found one.
 		"""
-
 		for dev in usb.core.find(idVendor = VENDOR_ID, idProduct = DEVICE_ID, find_all = True):
 			vendorName = usb.util.get_string(dev, 256, dev.iManufacturer)
 			deviceName = usb.util.get_string(dev, 256, dev.iProduct)
@@ -74,7 +91,7 @@ class RawConnector(object):
 
 	def getRawInterval(self):
 		"Returns the programmed interval."
-		return self._recvMessage(GET_INTERVAL)
+		return int(self._recvMessage(GET_INTERVAL))
 
 	def setRawVoltage(self, rawVoltage):
 		"Sets the desired Geiger tube supply voltage."
@@ -82,19 +99,89 @@ class RawConnector(object):
 
 	def getRawVoltage(self):
 		"Returns the measured actual Geiger tube supply voltage."
-		return self._recvMessage(GET_VOLTAGE)
+		return int(self._recvMessage(GET_VOLTAGE))
 
 	def getCPI(self):
 		"Returns the number of counts gathered during programmed interval."
-		return self._recvMessage(GET_CPI)
+		return float(self._recvMessage(GET_CPI))
 
 	def isCountAcknowledged(self):
 		"""If a new count occures, this flag is set. The flag is cleared after reading it. This is meant to check for
 		counts in real-time. By checking this flag often enough, you can get a precise information about any new count.
 		"""
-		return self._recvMessage(ACKNOWLEDGE_UNCHECKED_COUNT)
+		if self._recvMessage(ACKNOWLEDGE_UNCHECKED_COUNT) == 1:
+			return True
+		else:
+			return False
 
 	def __str__(self):
 		"""Returns the string containing all data acquired from the device: actual voltage, current CPI
-		and countAcknowledged flag."""
+		and countAcknowledged flag.
+		"""
 		return "CPI: " + str(self.getCPI()) + ", supply: " + str(self.getRawVoltage()) + ", count acknowledged: " + str(self.isCountAcknowledged())
+
+
+class Connector(RawConnector):
+	"This class wraps a RawCommunicator class to provide human-readable interface in standard units."
+
+	_tubeSensitivity = TUBE_SENSITIVITY
+	_voltDividerFactor = VOLTAGE_DIVIDER_LOWER_RESISTOR / (VOLTAGE_DIVIDER_LOWER_RESISTOR + VOLTAGE_DIVIDER_UPPER_RESISTOR)
+	_tubeVoltage = TUBE_VOLTAGE
+	_configuration = None
+
+	def __init__(self, configuration = None):
+		"Optional parameter is ConfigParser instance."
+		super(Connector, self).__init__()
+		if configuration is not None:
+			self._configuration = configuration
+
+			self._tubeSensitivity = self._loadOption('tube_sensitivity', TUBE_SENSITIVITY)
+			self._tubeVoltage = self._loadOption('tube_voltage', TUBE_VOLTAGE)
+
+			upperRes = self._loadOption('upper_resistor', VOLTAGE_DIVIDER_UPPER_RESISTOR)
+			lowerRes = self._loadOption('lower_resistor', VOLTAGE_DIVIDER_LOWER_RESISTOR)
+
+			self._voltDividerFactor = lowerRes / (lowerRes + upperRes)
+
+	def _loadOption(self, option, defaultValue):
+		try:
+			return self._configuration.getfloat('device', option)
+		except:
+			sys.stderr.write("Error at loading option '" + option + "'. Assigning default value: " +
+				str(defaultValue) + "\n")
+			return defaultValue
+
+	def getCPM(self):
+		"Returns radiation in counts per minute."
+		return self.getCPI() / self.getInterval() * 60.0
+
+	def getRadiation(self):
+		"Returns radiation in uSv/h."
+		value = (self.getCPM() / 60.0) * 10.0 / self._tubeSensitivity
+		return round(value, 3)
+
+	def getInterval(self):
+		"Returns measuring interval in seconds."
+		return self.getRawInterval() / TIMER_TICKS_PER_SECOND
+
+	def setInterval(self, seconds):
+		"Sets the measuring interval in seconds."
+		if seconds < 1 or seconds > 0xffff / TIMER_TICKS_PER_SECOND:
+			raise CommException("interval has to be between 1 and " + str(0xffff / TIMER_TICKS_PER_SECOND) + " seconds")
+		self.setRawInterval(TIMER_TICKS_PER_SECOND * seconds)
+
+	def getVoltage(self):
+		"Returns the measured Geiger tube supply voltage in volts."
+		return int(round(1.1 * self.getRawVoltage() / (self._voltDividerFactor * 1024.0)))
+
+	def setVoltage(self, volts):
+		"Sets the desired Geiger tube supply voltage in volts."
+		if volts < self._minVolt or volts > self._maxVolt:
+			raise CommException("voltage has to have value between " + str(self._minVolt) + " and "
+						+ str(self._maxVolt) + " volts")
+		self.setRawVoltage(self._voltDividerFactor * volts * 1024.0 / 1.1)
+
+	def __str__(self):
+		"Returns a string containing all data from the device: CPM, current radioactivity, voltage etc."
+
+		return "Radiation: " + str(self.getRadiation()) + " uS/h, CPM: " + str(self.getCPM()) + " int. " + str(self.getInterval()) + " s, supply: " + str(self.getVoltage()) + " V, count acknowledged: " + str(self.isCountAcknowledged())
