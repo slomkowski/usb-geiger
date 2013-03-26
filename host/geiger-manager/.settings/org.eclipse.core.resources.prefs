@@ -1,4 +1,6 @@
 eclipse.preferences.version=1
-encoding/cosm.py=utf8
+encoding//updaters/cosm.py=utf8
+encoding//updaters/dummy.py=utf8
+encoding//updaters/mysql.py=utf8
 encoding/main.py=utf8
 encoding/usbcomm.py=utf8
