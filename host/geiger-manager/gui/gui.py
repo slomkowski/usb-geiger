@@ -1,4 +1,4 @@
-# -*- encoding: utf8 -*-
+# -*- encoding: utf-8 -*-
 '''
  * USB Geiger counter manager
  * 2013 Michał Słomkowski
@@ -10,3 +10,6 @@ import Tkinter
 class GUIInterface(object):
 	def __init__(self, configuration, usbcomm):
 		print("gui start" + str(configuration) + str(usbcomm))
+
+	def start(self):
+		pass

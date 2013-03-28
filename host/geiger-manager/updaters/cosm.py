@@ -1,4 +1,4 @@
-# -*- encoding: utf8 -*-
+# -*- encoding: utf-8 -*-
 '''
  * USB Geiger counter manager
  * 2013 Michał Słomkowski
@@ -34,7 +34,7 @@ class PachubeUpdater(dummy.DummyUpdater):
 			self._apiKey = configuration.get(confFileSection, 'api_key')
 		except Exception as e:
 			self._enabled = False
-			raise PachubeException(str(e) + ". data is incomplete. Disabling.")
+			raise PachubeException(str(e) + ". data is incomplete.")
 
 
 	def update(self, radiation = None, cpm = None):

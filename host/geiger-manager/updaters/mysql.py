@@ -1,4 +1,4 @@
-# -*- encoding: utf8 -*-
+# -*- encoding: utf-8 -*-
 '''
  * USB Geiger counter manager
  * 2013 Michał Słomkowski
@@ -6,7 +6,6 @@
 '''
 
 import MySQLdb
-import datetime
 import dummy
 
 class MySQLUpdaterException(dummy.UpdaterException):
@@ -22,6 +21,9 @@ class MySQLUpdater(dummy.DummyUpdater):
 	_tableName = None
 
 	def __init__(self, configuration):
+		"""Reads configuration from the file and starts the connection with the database. The connection
+		is held during the whole program runtime.
+		"""
 		confFileSection = 'mysql'
 		try:
 			self._enabled = configuration.getboolean(confFileSection, 'enabled')
@@ -37,7 +39,7 @@ class MySQLUpdater(dummy.DummyUpdater):
 			self._tableName = configuration.get(confFileSection, 'table_name')
 		except Exception as e:
 			self._enabled = False
-			raise MySQLUpdaterException(str(e) + ". data is incomplete. Disabling.")
+			raise MySQLUpdaterException(str(e) + ". data is incomplete.")
 
 		try:
 			self._db = MySQLdb.connect(host = self._dbHost, user = self._dbUser,

@@ -1,4 +1,4 @@
-# -*- encoding: utf8 -*-
+# -*- encoding: utf-8 -*-
 '''
  * USB Geiger counter manager
  * 2013 Michał Słomkowski
@@ -92,7 +92,7 @@ class RawConnector(object):
 		"""Sets the time period of counting cycle. After that time, the counts value is transferred to output buffer
 		and accessible for getting. CPI value is cleared during this operation.
 		"""
-		self._sendMessage(SET_INTERVAL, rawInterval)
+		self._sendMessage(SET_INTERVAL, int(rawInterval))
 
 	def getRawInterval(self):
 		"Returns the programmed interval."
@@ -100,7 +100,7 @@ class RawConnector(object):
 
 	def setRawVoltage(self, rawVoltage):
 		"Sets the desired Geiger tube supply voltage."
-		self._sendMessage(SET_VOLTAGE, rawVoltage)
+		self._sendMessage(SET_VOLTAGE, int(rawVoltage))
 
 	def getRawVoltage(self):
 		"Returns the measured actual Geiger tube supply voltage."
@@ -156,6 +156,10 @@ class Connector(RawConnector):
 				str(defaultValue) + "\n")
 			return defaultValue
 
+	def setVoltageFromConfigFile(self):
+		"Sets the tube voltage basing on the value written in the config file."
+		self.setVoltage(self._tubeVoltage)
+
 	def getCPM(self):
 		"Returns radiation in counts per minute."
 		return self.getCPI() / self.getInterval() * 60.0
@@ -181,10 +185,10 @@ class Connector(RawConnector):
 
 	def setVoltage(self, volts):
 		"Sets the desired Geiger tube supply voltage in volts."
-		if volts < self._minVolt or volts > self._maxVolt:
-			raise CommException("voltage has to have value between " + str(self._minVolt) + " and "
-						+ str(self._maxVolt) + " volts")
-		self.setRawVoltage(self._voltDividerFactor * volts * 1024.0 / 1.1)
+		if volts < MIN_VOLTAGE or volts > MAX_VOLTAGE:
+			raise CommException("voltage has to have value between " + str(MIN_VOLTAGE) + " and "
+						+ str(MAX_VOLTAGE) + " volts")
+		self.setRawVoltage(int(self._voltDividerFactor * volts * 1024.0 / 1.1))
 
 	def __str__(self):
 		"Returns a string containing all data from the device: CPM, current radioactivity, voltage etc."

@@ -1,4 +1,4 @@
-# -*- encoding: utf8 -*-
+# -*- encoding: utf-8 -*-
 '''
  * USB Geiger counter manager
  * 2013 Michał Słomkowski
