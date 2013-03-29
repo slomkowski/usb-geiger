@@ -66,7 +66,7 @@ class MySQLUpdater(dummy.DummyUpdater):
 		import MySQLdb
 		try:
 			cursor = self._db.cursor()
-			strTime = time.strftime('%Y-%m-%d %H:%M:%S', timestamp)
+			strTime = time.strftime('%Y-%m-%d %H:%M:%S', self.localTime(timestamp))
 			cursor.execute("insert into " + self._tableName + "(radiation, cpm, time) values (%s, %s, %s)",
 				(float(radiation), float(cpm), strTime))
 			cursor.close()

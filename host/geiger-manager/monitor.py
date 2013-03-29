@@ -11,6 +11,7 @@ import time
 import updaters.dummy
 import importlib
 import ConfigParser
+import usbcomm
 
 class Monitor(object):
 
@@ -85,9 +86,15 @@ class Monitor(object):
 			self._timer.start()
 			return
 
-		timestamp = time.localtime()
-		radiation = self._usbcomm.getRadiation()
-		cpm = self._usbcomm.getCPM()
+		timestamp = time.gmtime()
+
+		try:
+			radiation = self._usbcomm.getRadiation()
+			cpm = self._usbcomm.getCPM()
+		except usbcomm.CommException as e:
+			sys.stderr.write("USB device error: " + str(e) + ". Skipping cycle.")
+			self._timer.start()
+			return
 
 		if self._verbose:
 			currTime = time.strftime("%H:%M:%S", timestamp)

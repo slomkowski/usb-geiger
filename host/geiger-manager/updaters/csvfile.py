@@ -61,6 +61,7 @@ class CsvFileUpdater(dummy.DummyUpdater):
 		self._fileHandle.close()
 
 	def update(self, timestamp, radiation, cpm):
+		timestamp = self.localTime(timestamp)
 		currDate = time.strftime(self._dateFormat, timestamp)
 		currTime = time.strftime(self._timeFormat, timestamp)
 		try:
