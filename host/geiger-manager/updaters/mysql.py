@@ -5,13 +5,15 @@
  * This code is distributed under the terms of GNU General Public License version 3.0.
 '''
 
-import MySQLdb
 import dummy
 
 class MySQLUpdaterException(dummy.UpdaterException):
 	pass
 
 class MySQLUpdater(dummy.DummyUpdater):
+	"""Inserts data to MySQL table given. The table has to have columns named 'cpm' and 'radiation'. Autocommit
+	mode is enabled.
+	"""
 
 	_dbName = None
 	_dbUser = None
@@ -41,6 +43,9 @@ class MySQLUpdater(dummy.DummyUpdater):
 			self._enabled = False
 			raise MySQLUpdaterException(str(e) + ". data is incomplete.")
 
+		# import is  here to don't throw exceptions about missing MySQLdb odules if they're not used
+		import MySQLdb
+
 		try:
 			self._db = MySQLdb.connect(host = self._dbHost, user = self._dbUser,
 				passwd = self._dbPassword, db = self._dbName)
@@ -48,6 +53,10 @@ class MySQLUpdater(dummy.DummyUpdater):
 		except MySQLdb.Error as e:
 			self._enabled = False
 			raise MySQLUpdaterException(str(e) + ". Connection failed.")
+
+	def close(self):
+		"Disconnects the database."
+		self._db.close()
 
 	def update(self, radiation, cpm):
 		"""Inserts new row to the database table. Both radiation and CPM have to be provided.
@@ -57,5 +66,5 @@ class MySQLUpdater(dummy.DummyUpdater):
 			cursor.execute("insert into " + self._tableName + "(radiation, cpm) values (%s, %s)",
 				(float(radiation), float(cpm)))
 			cursor.close()
-		except MySQLdb.Error as e:
+		except Exception as e:
 			raise MySQLUpdaterException("Could not insert new row to the table: " + str(e))

@@ -8,15 +8,15 @@
 import sys
 import threading
 import time
+import updaters.dummy
+import importlib
 
 class Monitor(object):
-
-	cosmEnabled = True
-	mysqlEnabled = True
 
 	_interval = None
 	_usbcomm = None
 	_verbose = False
+	_configuration = None
 
 	_timer = None
 
@@ -27,6 +27,7 @@ class Monitor(object):
 	def __init__(self, configuration, usbcomm, verbose):
 		self._verbose = verbose
 		self._usbcomm = usbcomm
+		self._configuration = configuration
 		confFileSection = 'monitor'
 		try:
 			self._interval = configuration.getint(confFileSection, 'interval')
@@ -39,29 +40,21 @@ class Monitor(object):
 		usbcomm.setVoltageFromConfigFile()
 		usbcomm.setInterval(self._interval)
 
-		if self.mysqlEnabled:
-			import updaters.mysql
-			try:
-				mysqlu = updaters.mysql.MySQLUpdater(configuration)
-				if mysqlu.isEnabled():
-					self._updatersList.append(mysqlu)
-					if verbose:
-						print("MySQL updater connected.")
-			except updaters.mysql.MySQLUpdaterException as e:
-				sys.stderr.write("Error at initializing MySQL updater: %s. Disabling." % str(e))
-				self.mysqlEnabled = False
+		self._initialize("cosm.com", "cosm", "PachubeUpdater")
+		self._initialize("MySQL", "mysql", "MySQLUpdater")
+		self._initialize("CSV file", "csvfile", "CsvFileUpdater")
 
-		if self.cosmEnabled:
-			import updaters.cosm
-			try:
-				u = updaters.cosm.PachubeUpdater(configuration)
-				if u.isEnabled():
-					self._updatersList.append(u)
-					if verbose:
-						print("cosm.com updater enabled.")
-			except updaters.cosm.PachubeException as e:
-				sys.stderr.write("Error at initializing cosm.com updater: %s. Disabling." % str(e))
-				self.cosmEnabled = False
+
+	def _initialize(self, name, importName, className):
+		importlib.import_module("updaters." + importName, "updaters")
+		try:
+			u = getattr(sys.modules["updaters." + importName], className)(self._configuration)
+			if u.isEnabled():
+				self._updatersList.append(u)
+				if self._verbose:
+					print(name + " updater enabled.")
+		except updaters.dummy.UpdaterException as e:
+			sys.stderr.write("Error at initializing %s updater: %s. Disabling." % (name, str(e)))
 
 	def start(self):
 		"""Enables cyclic monitoring. The firs measurement cycle has the 1.5 length of the given interval

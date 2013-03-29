@@ -23,6 +23,10 @@ class DummyUpdater(object):
 		"Returns status basing on configuration file entry."
 		return self._enabled
 
+	def close(self):
+		"Frees the resources."
+		self._enabled = False
+
 	def update(self, radiation = None, cpm = None):
 		"""Sends data wherever they are sent. Both parameters are optional. Raises exception if no data
 		was delivered
