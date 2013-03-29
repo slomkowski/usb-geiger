@@ -6,6 +6,7 @@
 '''
 
 import dummy
+import ConfigParser
 
 class MySQLUpdaterException(dummy.UpdaterException):
 	pass
@@ -39,7 +40,7 @@ class MySQLUpdater(dummy.DummyUpdater):
 			self._dbPassword = configuration.get(confFileSection, 'password')
 			self._dbHost = configuration.get(confFileSection, 'host')
 			self._tableName = configuration.get(confFileSection, 'table_name')
-		except Exception as e:
+		except ConfigParser.Error as e:
 			self._enabled = False
 			raise MySQLUpdaterException(str(e) + ". data is incomplete.")
 
@@ -61,10 +62,11 @@ class MySQLUpdater(dummy.DummyUpdater):
 	def update(self, radiation, cpm):
 		"""Inserts new row to the database table. Both radiation and CPM have to be provided.
 		"""
+		import MySQLdb
 		try:
 			cursor = self._db.cursor()
 			cursor.execute("insert into " + self._tableName + "(radiation, cpm) values (%s, %s)",
 				(float(radiation), float(cpm)))
 			cursor.close()
-		except Exception as e:
+		except MySQLdb.Error as e:
 			raise MySQLUpdaterException("Could not insert new row to the table: " + str(e))

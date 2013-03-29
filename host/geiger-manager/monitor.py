@@ -10,6 +10,7 @@ import threading
 import time
 import updaters.dummy
 import importlib
+import ConfigParser
 
 class Monitor(object):
 
@@ -31,7 +32,7 @@ class Monitor(object):
 		confFileSection = 'monitor'
 		try:
 			self._interval = configuration.getint(confFileSection, 'interval')
-		except Exception as e:
+		except ConfigParser.Error as e:
 			sys.stderr.write("Measuring interval wrong or not provided: " + str(e) + "\n")
 			sys.exit(1)
 

@@ -8,6 +8,7 @@
 import json
 import httplib
 import dummy
+import ConfigParser
 
 class PachubeException(dummy.UpdaterException):
 	pass
@@ -23,7 +24,7 @@ class PachubeUpdater(dummy.DummyUpdater):
 		confFileSection = 'cosm.com'
 		try:
 			self._enabled = configuration.getboolean(confFileSection, 'enabled')
-		except Exception:
+		except ConfigParser.Error:
 			pass
 		if self._enabled is False:
 			return
@@ -32,7 +33,7 @@ class PachubeUpdater(dummy.DummyUpdater):
 			self._RadiationID = configuration.get(confFileSection, 'radiation_id')
 			self._CPMID = configuration.get(confFileSection, 'cpm_id')
 			self._apiKey = configuration.get(confFileSection, 'api_key')
-		except Exception as e:
+		except ConfigParser.Error as e:
 			self._enabled = False
 			raise PachubeException(str(e) + ". data is incomplete.")
 
@@ -67,6 +68,6 @@ class PachubeUpdater(dummy.DummyUpdater):
 			if conn.getresponse().status != 200:
 				raise Exception("bad response")
 			conn.close()
-		except Exception as e:
+		except httplib.HTTPException as e:
 			conn.close()
 			raise PachubeException("Error at sending values to cosm.com: " + str(e))

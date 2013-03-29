@@ -8,6 +8,7 @@
 import dummy
 import time
 import csv
+import ConfigParser
 
 class CsvFileException(dummy.UpdaterException):
 	pass
@@ -38,7 +39,7 @@ class CsvFileUpdater(dummy.DummyUpdater):
 			self._timeFormat = configuration.get(confFileSection, 'time_format')
 			self._decimalSep = configuration.get(confFileSection, 'decimal_separator')
 			delimiter = configuration.get(confFileSection, 'delimiter')
-		except Exception as e:
+		except ConfigParser.Error as e:
 			self._enabled = False
 			raise CsvFileException("could not load all needed settings from the config file: " + str(e))
 
@@ -67,5 +68,5 @@ class CsvFileUpdater(dummy.DummyUpdater):
 			self._csv.writerow((currDate, currTime, str(radiation).replace('.', self._decimalSep),
 					str(cpm).replace('.', self._decimalSep)))
 			self._fileHandle.flush()
-		except Exception as e:
+		except IOError as e:
 			raise CsvFileException("could not write row to the CSV file: " + str(e))
