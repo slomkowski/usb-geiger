@@ -9,6 +9,7 @@ import json
 import httplib
 import dummy
 import ConfigParser
+import time
 
 class PachubeException(dummy.UpdaterException):
 	pass
@@ -19,6 +20,8 @@ class PachubeUpdater(dummy.DummyUpdater):
 	_RadiationID = None
 	_apiKey = None
 	_version = '1.0.0'
+
+	_mesg = {}
 
 	def __init__(self, configuration):
 		confFileSection = 'cosm.com'
@@ -37,6 +40,13 @@ class PachubeUpdater(dummy.DummyUpdater):
 			self._enabled = False
 			raise PachubeException(str(e) + ". data is incomplete.")
 
+		self._mesg['version'] = self._version
+		self._mesg['id'] = self._feedId
+
+	_radiationMin = None
+	_radiationMax = None
+	_cpmMin = None
+	_cpmMax = None
 
 	def update(self, timestamp, radiation = None, cpm = None):
 		"""Sends data to the server. Both parameters are optional, but at least one should be specified.
@@ -45,26 +55,26 @@ class PachubeUpdater(dummy.DummyUpdater):
 		"""
 		if not self._enabled:
 			return
+
+		timeStr = time.strftime("%Y-%m-%dT%H:%M:%SZ", timestamp)
+
 		# construct message structure
 		dataPoints = []
 		if cpm is not None:
-			dataPoints.append({'id': self._CPMID, 'current_value':cpm})
+			dataPoints.append({'id': self._CPMID, 'datapoints' : [{'at' : timeStr, 'value' : cpm}]})
 		if radiation is not None:
-			dataPoints.append({'id': self._RadiationID, 'current_value' : radiation})
+			dataPoints.append({'id': self._RadiationID, 'datapoints' : [{'at' : timeStr, 'value' : radiation}]})
 
 		if len(dataPoints) == 0:  # nothing to send
 			raise PachubeException("no data to send")
 
-		mesg = {}
-		mesg['version'] = self._version
-		mesg['id'] = self._feedId
-		mesg['datastreams'] = dataPoints
+		self._mesg['datastreams'] = dataPoints
 
 		# send it
 		headers = {"X-PachubeApiKey" : self._apiKey}
 		try:
 			conn = httplib.HTTPConnection('api.cosm.com')
-			conn.request("PUT", '//v2/feeds/' + self._feedId, json.dumps(mesg), headers)
+			conn.request("PUT", '//v2/feeds/' + self._feedId, json.dumps(self._mesg), headers)
 			if conn.getresponse().status != 200:
 				raise Exception("bad response")
 			conn.close()

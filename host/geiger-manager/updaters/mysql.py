@@ -7,12 +7,13 @@
 
 import dummy
 import ConfigParser
+import time
 
 class MySQLUpdaterException(dummy.UpdaterException):
 	pass
 
 class MySQLUpdater(dummy.DummyUpdater):
-	"""Inserts data to MySQL table given. The table has to have columns named 'cpm' and 'radiation'. Autocommit
+	"""Inserts data to MySQL table given. The table has to have columns named 'cpm', 'radiation' and 'time'. Autocommit
 	mode is enabled.
 	"""
 
@@ -65,8 +66,9 @@ class MySQLUpdater(dummy.DummyUpdater):
 		import MySQLdb
 		try:
 			cursor = self._db.cursor()
-			cursor.execute("insert into " + self._tableName + "(radiation, cpm) values (%s, %s)",
-				(float(radiation), float(cpm)))
+			strTime = time.strftime('%Y-%m-%d %H:%M:%S', timestamp)
+			cursor.execute("insert into " + self._tableName + "(radiation, cpm, time) values (%s, %s, %s)",
+				(float(radiation), float(cpm), strTime))
 			cursor.close()
 		except MySQLdb.Error as e:
 			raise MySQLUpdaterException("Could not insert new row to the table: " + str(e))
