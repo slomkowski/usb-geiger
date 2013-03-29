@@ -85,13 +85,13 @@ class Monitor(object):
 			self._timer.start()
 			return
 
-		timestamp = time.gmtime()
+		timestamp = time.localtime()
 		radiation = self._usbcomm.getRadiation()
 		cpm = self._usbcomm.getCPM()
 
 		if self._verbose:
 			currTime = time.strftime("%H:%M:%S", timestamp)
-			print("%s Pushing data: %f CPM, %f uSv/h" % (currTime, cpm, radiation))
+			print("[%s] pushing data: %f CPM, %f uSv/h" % (currTime, cpm, radiation))
 
 		for updater in self._updatersList:
 			updater.update(radiation = radiation, cpm = cpm, timestamp = timestamp)

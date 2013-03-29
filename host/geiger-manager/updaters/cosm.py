@@ -43,11 +43,6 @@ class PachubeUpdater(dummy.DummyUpdater):
 		self._mesg['version'] = self._version
 		self._mesg['id'] = self._feedId
 
-	_radiationMin = None
-	_radiationMax = None
-	_cpmMin = None
-	_cpmMax = None
-
 	def update(self, timestamp, radiation = None, cpm = None):
 		"""Sends data to the server. Both parameters are optional, but at least one should be specified.
 		Warning! If radiation_id or cpm_id are specified in the wrong way, there's no information about that.
