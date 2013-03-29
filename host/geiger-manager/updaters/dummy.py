@@ -27,7 +27,7 @@ class DummyUpdater(object):
 		"Frees the resources."
 		self._enabled = False
 
-	def update(self, radiation = None, cpm = None):
+	def update(self, timestamp, radiation = None, cpm = None):
 		"""Sends data wherever they are sent. Both parameters are optional. Raises exception if no data
 		was delivered
 		"""

@@ -60,10 +60,9 @@ class CsvFileUpdater(dummy.DummyUpdater):
 		self._enabled = False
 		self._fileHandle.close()
 
-	def update(self, radiation, cpm):
-		times = time.gmtime()
-		currDate = time.strftime(self._dateFormat, times)
-		currTime = time.strftime(self._timeFormat, times)
+	def update(self, timestamp, radiation, cpm):
+		currDate = time.strftime(self._dateFormat, timestamp)
+		currTime = time.strftime(self._timeFormat, timestamp)
 		try:
 			self._csv.writerow((currDate, currTime, str(radiation).replace('.', self._decimalSep),
 					str(cpm).replace('.', self._decimalSep)))

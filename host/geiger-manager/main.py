@@ -11,6 +11,8 @@ import ConfigParser
 import usbcomm
 import sys
 import os
+import signal
+import time
 
 __version__ = '0.1'
 __author__ = 'Michał Słomkowski'
@@ -23,6 +25,14 @@ CONFIG_PATH = [".", os.path.dirname(__file__), os.path.expanduser("~/.geiger"), 
 
 CONFIG_PATH = [os.path.realpath(os.path.join(directory, CONFIG_FILE_NAME)) for directory in CONFIG_PATH]
 
+def signalHandler(signum, frame):
+	"""Handles stopping signals, closes all updaters and threads and exits."""
+	if args.monitor:
+		print("Catched signal no. %d, stopping." % signum)
+		global monitor
+		monitor.stop()
+		sys.exit(1)
+
 # parse command-line arguments
 description = "Geiger manager v. " + __version__ + ', ' + __author__
 description += """. This program provides a complex interface to USB Geiger device
@@ -32,6 +42,7 @@ It needs configuration file to run, by default '""" + CONFIG_FILE_NAME + """'. I
 parser = argparse.ArgumentParser(description = description)
 parser.add_argument("-c", "--config", nargs = 1, help = "reads given configuration file")
 parser.add_argument("-v", "--verbose", action = 'store_true', help = "shows additional information")
+parser.add_argument("-b", "--background", action = 'store_true', help = "runs as background process")
 group = parser.add_mutually_exclusive_group()
 group.add_argument("-g", "--gui", action = 'store_true', help = "starts GUI window. Enabled by default")
 group.add_argument("-m", "--monitor", action = 'store_true', help = "starts program in monitor mode")
@@ -41,6 +52,11 @@ args = parser.parse_args()
 
 if args.verbose:
 	print("Geiger manager v. " + __version__ + ', ' + __author__)
+
+# become a daemon and fork
+if args.background:
+	if os.fork() != 0:
+		os._exit(0)
 
 if args.config:
 	CONFIG_PATH = []
@@ -79,6 +95,10 @@ if args.status:
 	print(comm)
 	sys.exit()
 
+# register SIGINT (Ctrl-C) signal handler
+signal.signal(signal.SIGINT, signalHandler)
+signal.signal(signal.SIGTERM, signalHandler)
+
 # launch GUI
 if args.gui:
 	import gui.gui
@@ -93,3 +113,7 @@ if args.monitor:
 	import monitor
 	monitor = monitor.Monitor(configuration = conf, usbcomm = comm, verbose = args.verbose)
 	monitor.start()
+
+	while True:
+		time.sleep(5)
+

@@ -8,6 +8,7 @@
 import usb.core
 import usb.util
 import sys
+import ConfigParser
 
 # these values are provided with V-USB for shared use
 VENDOR_ID = 0x16c0
@@ -151,7 +152,7 @@ class Connector(RawConnector):
 	def _loadOption(self, option, defaultValue):
 		try:
 			return self._configuration.getfloat('device', option)
-		except:
+		except ConfigParser.Error:
 			sys.stderr.write("Error at loading option '" + option + "'. Assigning default value: " +
 				str(defaultValue) + "\n")
 			return defaultValue
