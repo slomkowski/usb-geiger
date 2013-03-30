@@ -37,7 +37,7 @@ void counter_init() {
 }
 
 ISR(PCINT1_vect, ISR_NOBLOCK) {
-	static _Bool risingEdge = 0xff;
+	static uint8_t risingEdge = 0xff;
 
 	if (risingEdge) {
 		actualCounts++;
