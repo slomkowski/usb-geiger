@@ -47,7 +47,7 @@ void supply_init() {
 	ADCSRA = (1 << ADEN) | (1 << ADSC) | (1 << ADATE) | (1 << ADIE) | (1 << ADPS2) | (1 << ADPS1) | (1 << ADPS0);
 
 	// set the ADC trigger as Timer 0 compare match. It starts the conversion every 20 ms
-	ADCSRA |= ADCSRB |= (1 << ADTS1) | (1 << ADTS0);
+	ADCSRB |= (1 << ADTS1) | (1 << ADTS0);
 }
 
 ISR(ADC_vect, ISR_NOBLOCK) {

@@ -19,6 +19,7 @@ extern volatile COUNTS_VAR_TYPE countsPerInterval;
 extern volatile COUNTS_VAR_TYPE actualCounts;
 
 extern volatile uint16_t programmedInterval;
+extern volatile uint16_t intervalCount;
 
 // ledCounter is also used in main()
 extern volatile uint8_t ledCounter;

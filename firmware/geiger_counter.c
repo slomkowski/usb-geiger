@@ -22,7 +22,7 @@ volatile uint16_t programmedInterval = 100 * DEFAULT_INTERVAL_SECONDS;
 
 volatile uint8_t ledCounter = 260 / 10; // 300 ms, this variable is used in a tricky way in main.c to wait ~ 300 ms
 
-static volatile uint16_t intervalCount;
+volatile uint16_t intervalCount;
 
 void counter_init() {
 	// pin change interrupt
@@ -37,7 +37,7 @@ void counter_init() {
 }
 
 ISR(PCINT1_vect, ISR_NOBLOCK) {
-	static _Bool risingEdge = true;
+	static _Bool risingEdge = 0xff;
 
 	if (risingEdge) {
 		actualCounts++;
@@ -45,11 +45,9 @@ ISR(PCINT1_vect, ISR_NOBLOCK) {
 
 		led_off();
 		ledCounter = LED_BLINK_TIME / 10;
-
-		risingEdge = false;
-	} else {
-		risingEdge = true;
 	}
+
+	risingEdge = ~risingEdge;
 }
 
 ISR(TIM0_COMPA_vect, ISR_NOBLOCK) {
