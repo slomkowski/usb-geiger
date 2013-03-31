@@ -55,6 +55,9 @@ class RawConnector(object):
 		"""Initiates the class and opens the device. Warning! The constructor assumes that only one Geiger device
 		is connected to the bus. Otherwise, it opens the first-found one.
 		"""
+		self._openDevice()
+
+	def _openDevice(self):
 		for dev in usb.core.find(idVendor = VENDOR_ID, idProduct = DEVICE_ID, find_all = True):
 			vendorName = usb.util.get_string(dev, 256, dev.iManufacturer)
 			deviceName = usb.util.get_string(dev, 256, dev.iProduct)
@@ -64,7 +67,16 @@ class RawConnector(object):
 				break
 
 		if self._device is None:
-			raise CommException("Geiger counter device not found")
+			raise CommException("Geiger device not found")
+
+	def resetConnection(self):
+		"Forces the device to reset and discovers it one more time."
+		try:
+			self._device.reset()
+			usb.util.dispose_resources(self._device)
+		except usb.core.USBError:
+			pass
+		self._openDevice()
 
 	def _sendMessage(self, request, value):
 		if value > 0xffff:

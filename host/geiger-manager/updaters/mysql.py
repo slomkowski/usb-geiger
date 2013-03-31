@@ -59,6 +59,7 @@ class MySQLUpdater(dummy.DummyUpdater):
 	def close(self):
 		"Disconnects the database."
 		self._db.close()
+		self._enabled = False
 
 	def update(self, timestamp, radiation, cpm):
 		"""Inserts new row to the database table. Both radiation and CPM have to be provided.

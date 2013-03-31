@@ -87,7 +87,7 @@ try:
 		print("Initializing Geiger device...")
 	comm = usbcomm.Connector(conf)
 except usbcomm.CommException as exp:
-	sys.stderr.write("Error at initializing USB device: " + str(exp))
+	sys.stderr.write("Error at initializing USB device: %s\n" % str(exp))
 	sys.exit(1)
 
 # display values from Geiger device and leave
