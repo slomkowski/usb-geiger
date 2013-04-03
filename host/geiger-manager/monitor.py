@@ -39,7 +39,7 @@ class Monitor(object):
 		if verbose:
 			print("Setting programmed voltage and interval to %d seconds." % self._interval)
 		usbcomm.setVoltageFromConfigFile()
-		usbcomm.setInterval(1.5 * self._interval)
+		usbcomm.setInterval(self._interval)
 
 		self._initialize("cosm.com", "cosm", "PachubeUpdater")
 		self._initialize("MySQL", "mysql", "MySQLUpdater")
@@ -61,7 +61,7 @@ class Monitor(object):
 		"""Enables cyclic monitoring. The first measurement cycle has the 1.5 length of the given interval
 		in order to collect data by the device.
 		"""
-		self._timer = threading.Timer(self._interval / 2, self._update)
+		self._timer = threading.Timer(1.5 * self._interval, self._update)
 		self._timer.setDaemon(True)
 		self._timer.start()
 
