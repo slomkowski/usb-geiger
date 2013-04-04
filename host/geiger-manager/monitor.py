@@ -76,8 +76,16 @@ class Monitor(object):
 				updater.close()
 
 	def _update(self):
+		"""This method is called by the internal timer every 'interval' time to gather measurements
+		and send them to specified updaters. The first cycle has 1.5*interval length to give the
+		Geiger device time to collect counts. Then, update takes place in the middle of the next
+		measuring cycle.
+		"""
+
 		self._timer = threading.Timer(self._interval, self._update)
 		self._timer.setDaemon(True)
+		# start new cycle here to prevent shifting next update time stamp
+		self._timer.start()
 
 		timestamp = time.gmtime()
 
@@ -93,11 +101,12 @@ class Monitor(object):
 				self._usbcomm.setVoltageFromConfigFile()
 				self._usbcomm.setInterval(self._interval)
 			except usbcomm.CommException as e:
-				self._log.error("Error at reinitializing device: %s", str(e))
+				self._log.critical("Error at reinitializing device: %s", str(e))
 				self.stop()
 				# close entire application
 				thread.interrupt_main()
 
+			self._timer.cancel()
 			self._timer = threading.Timer(1.5 * self._interval, self._update)
 			self._timer.setDaemon(True)
 			self._timer.start()
@@ -106,6 +115,7 @@ class Monitor(object):
 		self._log.info("pushing data: %f CPM, %f uSv/h", cpm, radiation)
 
 		for updater in self._updatersList:
-			updater.update(radiation = radiation, cpm = cpm, timestamp = timestamp)
-
-		self._timer.start()
+			try:
+				updater.update(radiation = radiation, cpm = cpm, timestamp = timestamp)
+			except updaters.dummy.UpdaterException as exp:
+				self._log.error("Updater error: %s", str(exp))

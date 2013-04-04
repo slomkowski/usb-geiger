@@ -71,7 +71,7 @@ class PachubeUpdater(dummy.DummyUpdater):
 			conn = httplib.HTTPConnection('api.cosm.com')
 			conn.request("PUT", '//v2/feeds/' + self._feedId, json.dumps(self._mesg), headers)
 			if conn.getresponse().status != 200:
-				raise Exception("bad response")
+				raise httplib.HTTPException("bad response")
 			conn.close()
 		except httplib.HTTPException as e:
 			conn.close()

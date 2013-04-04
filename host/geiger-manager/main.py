@@ -53,7 +53,7 @@ group.add_argument("-s", "--status", action = 'store_true', help = "reads data f
 
 args = parser.parse_args()
 
-if args.verbose:
+if args.verbose and not args.background:
 	print("Geiger manager v. " + __version__ + ', ' + __author__)
 
 # become a daemon and fork
@@ -64,7 +64,7 @@ if args.background:
 if args.config:
 	CONFIG_PATH = []
 	CONFIG_PATH.append(args.config[0])
-	if args.verbose:
+	if args.verbose and not args.background:
 		print("Using configuration file '%s'" % args.config[0])
 
 # load configuration file
