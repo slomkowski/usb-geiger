@@ -68,7 +68,7 @@ class PachubeUpdater(dummy.DummyUpdater):
 		# send it
 		headers = {"X-PachubeApiKey" : self._apiKey}
 		try:
-			conn = httplib.HTTPConnection('api.cosm.com')
+			conn = httplib.HTTPConnection('api.cosm.com', timeout = 10)
 			conn.request("PUT", '//v2/feeds/' + self._feedId, json.dumps(self._mesg), headers)
 			if conn.getresponse().status != 200:
 				raise httplib.HTTPException("bad response")
