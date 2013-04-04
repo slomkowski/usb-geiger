@@ -13,49 +13,49 @@ import updaters.dummy
 import importlib
 import ConfigParser
 import usbcomm
+import logging
 
 class Monitor(object):
 
 	_interval = None
 	_usbcomm = None
-	_verbose = False
+	_log = False
 	_configuration = None
 
 	_timer = None
 
 	_updatersList = []
 
-	def __init__(self, configuration, usbcomm, verbose):
-		self._verbose = verbose
+	def __init__(self, configuration, usbcomm):
+		self._log = logging.getLogger("geiger.monitor")
 		self._usbcomm = usbcomm
 		self._configuration = configuration
 		confFileSection = 'monitor'
 		try:
 			self._interval = configuration.getint(confFileSection, 'interval')
 		except ConfigParser.Error as e:
-			sys.stderr.write("Measuring interval wrong or not provided: %s\n" % str(e))
+			self._log.critical("Measuring interval wrong or not provided: %s.", str(e))
 			sys.exit(1)
 
-		if verbose:
-			print("Setting programmed voltage and interval to %d seconds." % self._interval)
+		self._log.info("Setting programmed voltage and interval to %d seconds.", self._interval)
+
 		usbcomm.setVoltageFromConfigFile()
 		usbcomm.setInterval(self._interval)
 
-		self._initialize("cosm.com", "cosm", "PachubeUpdater")
-		self._initialize("MySQL", "mysql", "MySQLUpdater")
-		self._initialize("CSV file", "csvfile", "CsvFileUpdater")
+		self._initializeUpdater("cosm.com", "cosm", "PachubeUpdater")
+		self._initializeUpdater("MySQL", "mysql", "MySQLUpdater")
+		self._initializeUpdater("CSV file", "csvfile", "CsvFileUpdater")
 
 
-	def _initialize(self, name, importName, className):
+	def _initializeUpdater(self, name, importName, className):
 		importlib.import_module("updaters." + importName, "updaters")
 		try:
 			u = getattr(sys.modules["updaters." + importName], className)(self._configuration)
 			if u.isEnabled():
 				self._updatersList.append(u)
-				if self._verbose:
-					print(name + " updater enabled.")
+				self._log.info("%s updater enabled.", name)
 		except updaters.dummy.UpdaterException as e:
-			sys.stderr.write("Error at initializing %s updater: %s. Disabling.\n" % (name, str(e)))
+			self._log.error("Error at initializing %s updater: %s. Disabling.", name, str(e))
 
 	def start(self):
 		"""Enables cyclic monitoring. The first measurement cycle has the 1.5 length of the given interval
@@ -69,8 +69,7 @@ class Monitor(object):
 		"""Stops measuring cycle and closes all updaters."""
 		self._timer.cancel()
 
-		if self._verbose:
-			print("Stopping all updaters.")
+		self._log.info("Stopping all updaters.")
 
 		for updater in self._updatersList:
 			if updater.isEnabled():
@@ -86,17 +85,15 @@ class Monitor(object):
 			radiation = self._usbcomm.getRadiation()
 			cpm = self._usbcomm.getCPM()
 		except usbcomm.CommException as e:
-			sys.stderr.write("USB device error: " + str(e) + ". Forcing device reset and wait of 1.5 cycle length.\n")
-			if self._verbose:
-				print("Resetting device.")
+			self._log.error("USB device error: %s. Forcing device reset and wait of 1.5 cycle length.", str(e))
+			self._log.info("Resetting device.")
 			try:
 				self._usbcomm.resetConnection()
-				if self._verbose:
-					print("Setting programmed voltage and interval to %d seconds." % self._interval)
+				self._log.info("Setting programmed voltage and interval to %d seconds.", self._interval)
 				self._usbcomm.setVoltageFromConfigFile()
 				self._usbcomm.setInterval(self._interval)
 			except usbcomm.CommException as e:
-				sys.stderr.write("Error at reinitializing device: %s\n" % str(e))
+				self._log.error("Error at reinitializing device: %s", str(e))
 				self.stop()
 				# close entire application
 				thread.interrupt_main()
@@ -106,9 +103,7 @@ class Monitor(object):
 			self._timer.start()
 			return
 
-		if self._verbose:
-			currTime = time.strftime("%H:%M:%S", timestamp)
-			print("[%s] pushing data: %f CPM, %f uSv/h" % (currTime, cpm, radiation))
+		self._log.info("pushing data: %f CPM, %f uSv/h", cpm, radiation)
 
 		for updater in self._updatersList:
 			updater.update(radiation = radiation, cpm = cpm, timestamp = timestamp)

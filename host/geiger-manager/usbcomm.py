@@ -7,8 +7,8 @@
 
 import usb.core
 import usb.util
-import sys
 import ConfigParser
+import logging
 
 # these values are provided with V-USB for shared use
 VENDOR_ID = 0x16c0
@@ -165,8 +165,8 @@ class Connector(RawConnector):
 		try:
 			return self._configuration.getfloat('device', option)
 		except ConfigParser.Error:
-			sys.stderr.write("Error at loading option '" + option + "'. Assigning default value: " +
-				str(defaultValue) + "\n")
+			log = logging.getLogger("geiger.usbcomm")
+			log.error("Error at loading option '%s'. Assigning default value: %f", option, str(defaultValue))
 			return defaultValue
 
 	def setVoltageFromConfigFile(self):

@@ -13,6 +13,7 @@ import sys
 import os
 import signal
 import time
+import logging
 
 __version__ = '0.1'
 __author__ = 'Michał Słomkowski'
@@ -28,9 +29,11 @@ CONFIG_PATH = [os.path.realpath(os.path.join(directory, CONFIG_FILE_NAME)) for d
 def signalHandler(signum, frame):
 	"""Handles stopping signals, closes all updaters and threads and exits."""
 	if args.monitor:
-		print("Catched signal no. %d, stopping." % signum)
+		global logger
+		logger.info("Catched signal no. %d, stopping.", signum)
 		global monitor
 		monitor.stop()
+		logging.shutdown()
 		sys.exit(1)
 
 # parse command-line arguments
@@ -71,23 +74,50 @@ for filePath in CONFIG_PATH:
 	try:
 		conf.readfp(open(filePath))
 		configurationLoaded = True
-		if args.verbose:
+		if args.verbose and not args.background:
 			print("Configuration file loaded from: " + filePath)
 		break
 	except IOError:
 		configurationLoaded = False
 
 if not configurationLoaded:
-	sys.stderr.write("Error at loading configuration file.\n")
+	print >> sys.stderr, ("Error at loading configuration file.")
 	sys.exit(1)
+
+try:
+	loggingEnabled = conf.getboolean('general', 'log_enabled')
+	logFilePath = conf.get('general', 'log_file')
+except ConfigParser.Error as exp:
+	print >> sys.stderr, ("Could not load logging options: %s" % str(exp))
+	sys.exit(1)
+
+logger = logging.getLogger("geiger")
+logFormatter = logging.Formatter('%(asctime)s %(name)s %(message)s', datefmt = '[%Y-%m-%d %H:%M:%S]')
+if args.verbose:
+	logger.setLevel(logging.INFO)
+else:
+	logger.setLevel(logging.ERROR)
+
+if not args.background:
+	consoleLog = logging.StreamHandler(sys.stdout)
+	consoleLog.setFormatter(logFormatter)
+	logger.addHandler(consoleLog)
+
+if loggingEnabled:
+	try:
+		fileLog = logging.FileHandler(logFilePath)
+		fileLog.setFormatter(logFormatter)
+		logger.addHandler(fileLog)
+	except IOError as exp:
+		print >> sys.stderr, ("Could open log file to write: %s" % str(exp))
+		sys.exit(1)
 
 # establish USB connection
 try:
-	if args.verbose:
-		print("Initializing Geiger device...")
+	logger.info("Initializing Geiger device...")
 	comm = usbcomm.Connector(conf)
 except usbcomm.CommException as exp:
-	sys.stderr.write("Error at initializing USB device: %s\n" % str(exp))
+	logger.critical("Error at initializing USB device: %s", str(exp))
 	sys.exit(1)
 
 # display values from Geiger device and leave
@@ -102,8 +132,6 @@ signal.signal(signal.SIGTERM, signalHandler)
 # launch GUI
 if args.gui:
 	import gui.gui
-	if args.verbose:
-		print("Launching GUI...")
 	gui = gui.gui.GUIInterface(configuration = conf, usbcomm = usbcomm)
 	gui.start()
 	sys.exit()
@@ -111,7 +139,7 @@ if args.gui:
 # start monitor mode
 if args.monitor:
 	import monitor
-	monitor = monitor.Monitor(configuration = conf, usbcomm = comm, verbose = args.verbose)
+	monitor = monitor.Monitor(configuration = conf, usbcomm = comm)
 	monitor.start()
 
 	while True:
