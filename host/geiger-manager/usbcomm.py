@@ -173,13 +173,21 @@ class Connector(RawConnector):
 		"Sets the tube voltage basing on the value written in the config file."
 		self.setVoltage(self._tubeVoltage)
 
-	def getCPM(self):
-		"Returns radiation in counts per minute."
-		return round(self.getCPI() / self.getInterval() * 60.0, 2)
+	def getCPMandRadiation(self):
+		"Returns a tuple containing CPM and Radiation in respective order."
+		cpm = self.getCPM()
+		radiation = self.getRadiation(cpm)
+		return (cpm, radiation)
 
-	def getRadiation(self):
+	def getCPM(self, cpi = None):
+		"Returns radiation in counts per minute."
+		return round(cpi / self.getInterval() * 60.0, 2)
+
+	def getRadiation(self, cpm = None):
 		"Returns radiation in uSv/h."
-		value = (self.getCPM() / 60.0) * 10.0 / self._tubeSensitivity
+		if cpm is None:
+			cpm = self.getCPM()
+		value = (cpm / 60.0) * 10.0 / self._tubeSensitivity
 		return round(value, 3)
 
 	def getInterval(self):

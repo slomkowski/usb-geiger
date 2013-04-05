@@ -90,8 +90,7 @@ class Monitor(object):
 		timestamp = time.gmtime()
 
 		try:
-			radiation = self._usbcomm.getRadiation()
-			cpm = self._usbcomm.getCPM()
+			cpm, radiation = self._usbcomm.getCPMandRadiation()
 		except usbcomm.CommException as e:
 			self._log.error("USB device error: %s. Forcing device reset and wait of 1.5 cycle length.", str(e))
 			self._log.info("Resetting device.")
