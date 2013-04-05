@@ -6,6 +6,7 @@
 '''
 
 import sys
+import os
 import threading
 import thread
 import time
@@ -42,13 +43,26 @@ class Monitor(object):
 		usbcomm.setVoltageFromConfigFile()
 		usbcomm.setInterval(self._interval)
 
-		self._initializeUpdater("cosm.com", "cosm", "PachubeUpdater")
-		self._initializeUpdater("MySQL", "mysql", "MySQLUpdater")
-		self._initializeUpdater("CSV file", "csvfile", "CsvFileUpdater")
+		self._initializeUpdater("cosm")
+		self._initializeUpdater("mysql")
+		self._initializeUpdater("csvfile")
+
+		# initialize all updater modules in the directory
+		for files in os.listdir(os.path.join(os.path.dirname(__file__), "updaters")):
+			if files.endswith(".py"):
+				self._initializeUpdater(files[:-3])
 
 
-	def _initializeUpdater(self, name, importName, className):
+	def _initializeUpdater(self, importName):
 		importlib.import_module("updaters." + importName, "updaters")
+
+		for elem in getattr(sys.modules["updaters." + importName], '__dict__'):
+			if elem.endswith('Updater'):
+				className = elem
+		try:
+			name = getattr(sys.modules["updaters." + importName], 'IDENTIFICATOR')
+		except:
+			return
 		try:
 			u = getattr(sys.modules["updaters." + importName], className)(self._configuration)
 			if u.isEnabled():

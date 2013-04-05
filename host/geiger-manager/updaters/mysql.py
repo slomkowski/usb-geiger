@@ -9,6 +9,8 @@ import dummy
 import ConfigParser
 import time
 
+IDENTIFICATOR = 'MySQL'
+
 class MySQLUpdaterException(dummy.UpdaterException):
 	pass
 

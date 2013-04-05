@@ -11,6 +11,8 @@ import dummy
 import ConfigParser
 import time
 
+IDENTIFICATOR = 'Pachube cosm.com'
+
 class PachubeException(dummy.UpdaterException):
 	pass
 

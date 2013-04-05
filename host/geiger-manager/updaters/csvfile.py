@@ -10,6 +10,8 @@ import time
 import csv
 import ConfigParser
 
+IDENTIFICATOR = 'CSV file'
+
 class CsvFileException(dummy.UpdaterException):
 	pass
 
