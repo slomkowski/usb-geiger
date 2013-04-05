@@ -179,9 +179,9 @@ class Connector(RawConnector):
 		radiation = self.getRadiation(cpm)
 		return (cpm, radiation)
 
-	def getCPM(self, cpi = None):
+	def getCPM(self):
 		"Returns radiation in counts per minute."
-		return round(cpi / self.getInterval() * 60.0, 2)
+		return round(self.getCPI() / self.getInterval() * 60.0, 2)
 
 	def getRadiation(self, cpm = None):
 		"Returns radiation in uSv/h."

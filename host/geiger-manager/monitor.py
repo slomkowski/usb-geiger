@@ -56,15 +56,17 @@ class Monitor(object):
 	def _initializeUpdater(self, importName):
 		importlib.import_module("updaters." + importName, "updaters")
 
-		for elem in getattr(sys.modules["updaters." + importName], '__dict__'):
+		module = sys.modules["updaters." + importName]
+
+		for elem in getattr(module, '__dict__'):
 			if elem.endswith('Updater'):
 				className = elem
 		try:
-			name = getattr(sys.modules["updaters." + importName], 'IDENTIFICATOR')
+			name = getattr(module, 'IDENTIFICATOR')
 		except:
 			return
 		try:
-			u = getattr(sys.modules["updaters." + importName], className)(self._configuration)
+			u = getattr(module, className)(self._configuration)
 			if u.isEnabled():
 				self._updatersList.append(u)
 				self._log.info("%s updater enabled.", name)
