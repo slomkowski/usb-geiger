@@ -38,18 +38,17 @@ def signalHandler(signum, frame):
 
 # parse command-line arguments
 description = "Geiger manager v. " + __version__ + ', ' + __author__
-description += """. This program provides a complex interface to USB Geiger device
-including graphical user interface and monitor tools for pushing results to predefined MySQL table and cosm.com service. 
-It needs configuration file to run, by default '""" + CONFIG_FILE_NAME + """'. It uses pyusb library."""
+description += """This program is a daemon which monitors constantly the radiation measured by USB Geiger device
+and sends the results to cosm.com, MySQL database or CSV file. All configuration is stored in the file '"""
+description += CONFIG_FILE_NAME + """' which is essential to run. Program uses pyusb library and MySQLdb, if MySQL is enabled."""
 
 parser = argparse.ArgumentParser(description = description)
 parser.add_argument("-c", "--config", nargs = 1, help = "reads given configuration file")
 parser.add_argument("-v", "--verbose", action = 'store_true', help = "shows additional information")
 parser.add_argument("-b", "--background", action = 'store_true', help = "runs as background process")
 group = parser.add_mutually_exclusive_group()
-group.add_argument("-g", "--gui", action = 'store_true', help = "starts GUI window. Enabled by default")
 group.add_argument("-m", "--monitor", action = 'store_true', help = "starts program in monitor mode")
-group.add_argument("-s", "--status", action = 'store_true', help = "reads data from Geiger device and leaves")
+group.add_argument("-s", "--status", action = 'store_true', help = "reads data from Geiger device and leaves (enabled by default)")
 
 args = parser.parse_args()
 
@@ -103,6 +102,9 @@ if not args.background:
 	consoleLog.setFormatter(logFormatter)
 	logger.addHandler(consoleLog)
 
+if not args.monitor:
+	loggingEnabled = False
+
 if loggingEnabled:
 	try:
 		fileLog = logging.FileHandler(logFilePath)
@@ -120,21 +122,9 @@ except usbcomm.CommException as exp:
 	logger.critical("Error at initializing USB device: %s", str(exp))
 	sys.exit(1)
 
-# display values from Geiger device and leave
-if args.status:
-	print(comm)
-	sys.exit()
-
 # register SIGINT (Ctrl-C) signal handler
 signal.signal(signal.SIGINT, signalHandler)
 signal.signal(signal.SIGTERM, signalHandler)
-
-# launch GUI
-if args.gui:
-	import gui.gui
-	gui = gui.gui.GUIInterface(configuration = conf, usbcomm = usbcomm)
-	gui.start()
-	sys.exit()
 
 # start monitor mode
 if args.monitor:
@@ -145,3 +135,6 @@ if args.monitor:
 	while True:
 		time.sleep(5)
 
+# default behavior: display values from Geiger device and leave
+print(comm)
+sys.exit()
