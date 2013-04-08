@@ -43,10 +43,6 @@ class Monitor(object):
 		usbcomm.setVoltageFromConfigFile()
 		usbcomm.setInterval(self._interval)
 
-		self._initializeUpdater("cosm")
-		self._initializeUpdater("mysql")
-		self._initializeUpdater("csvfile")
-
 		# initialize all updater modules in the directory
 		for files in os.listdir(os.path.join(os.path.dirname(__file__), "updaters")):
 			if files.endswith(".py"):
