@@ -75,6 +75,6 @@ class PachubeUpdater(dummy.DummyUpdater):
 			if conn.getresponse().status != 200:
 				raise httplib.HTTPException("bad response")
 			conn.close()
-		except httplib.HTTPException as e:
+		except Exception as e:
 			conn.close()
 			raise PachubeException("Error at sending values to cosm.com: " + str(e))
