@@ -347,7 +347,7 @@ UsedLibrary="geiger.lbr"
 [Win_1]
 Type="Board Editor"
 Loc="0 0 599 399"
-State=2
+State=0
 Number=2
 File="usb-geiger.brd"
 View="-13.9918 -9.1119 131.172 62.7471"
