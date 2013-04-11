@@ -15,7 +15,7 @@ import signal
 import time
 import logging
 
-__version__ = '0.1'
+__version__ = '1.0'
 __author__ = 'Michał Słomkowski'
 __copyright__ = 'GNU GPL v.3.0'
 
@@ -37,7 +37,7 @@ def signalHandler(signum, frame):
 		sys.exit(1)
 
 # parse command-line arguments
-description = "Geiger manager v. " + __version__ + ', ' + __author__
+description = "Geiger manager v. " + __version__ + ', ' + __author__ + ". "
 description += """This program is a daemon which monitors constantly the radiation measured by USB Geiger device
 and sends the results to cosm.com, MySQL database or CSV file. All configuration is stored in the file '"""
 description += CONFIG_FILE_NAME + """' which is essential to run. Program uses pyusb library and MySQLdb, if MySQL is enabled."""

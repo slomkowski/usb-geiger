@@ -5,7 +5,7 @@
 # Default-Stop:      0 1 6
 # Short-Description: USB Geiger monitor daemon.
 # Description:       Script for starting USB Geiger manager at boot time.
-# You should place it in /etc/init.d/ and give it executable premissions: 755.
+# You should place it in /etc/init.d/geiger and give it executable premissions: 755.
 # To start it at boot time, type: 
 # sudo update-rc.d geiger defaults
 #
