@@ -35,6 +35,7 @@ class CsvFileUpdater(dummy.DummyUpdater):
 			pass
 		if self._enabled is False:
 			return
+
 		try:
 			fileName = configuration.get(confFileSection, 'file_name')
 			self._dateFormat = configuration.get(confFileSection, 'date_format')

@@ -3,7 +3,7 @@ Geiger Manager
 2013 Michał Słomkowski
 License: GNU General Public License ver.3
 
-This program is a daemon which monitors constantly the radiation measured by USB Geiger device and sends the results to cosm.com, MySQL database or CSV file. All configuration is stored in the file 'configuration.ini' which is essential to run. Program uses pyusb library and MySQLdb, if MySQL is enabled.
+This program is a daemon which monitors constantly the radiation measured by USB Geiger device and sends the results to xively.com, MySQL database or CSV file. All configuration is stored in the file 'configuration.ini' which is essential to run. Program uses pyusb library and MySQLdb, if MySQL is enabled.
 
 Optional arguments:
 *  -h, --help            show this help message and exit
