@@ -15,15 +15,14 @@ class MySQLUpdaterException(dummy.UpdaterException):
 	pass
 
 class MySQLUpdater(dummy.DummyUpdater):
-	"""Inserts data to MySQL table given. The table has to have columns named 'cpm', 'radiation' and 'time'. Autocommit
-	mode is enabled.
+	"""Inserts data to MySQL table given. The table has to have columns named 'cpm', 'radiation' and 'time'.
+	Connects the database each time.
 	"""
 
 	_dbName = None
 	_dbUser = None
 	_dbPassword = None
 	_dbHost = None
-	_db = None
 	_tableName = None
 
 	def __init__(self, configuration):
@@ -51,16 +50,15 @@ class MySQLUpdater(dummy.DummyUpdater):
 		import MySQLdb
 
 		try:
-			self._db = MySQLdb.connect(host = self._dbHost, user = self._dbUser,
+			db = MySQLdb.connect(host = self._dbHost, user = self._dbUser,
 				passwd = self._dbPassword, db = self._dbName)
-			self._db.autocommit(True)
+			db.close()
 		except MySQLdb.Error as e:
 			self._enabled = False
 			raise MySQLUpdaterException(str(e) + ". Connection failed.")
 
 	def close(self):
 		"Disconnects the database."
-		self._db.close()
 		self._enabled = False
 
 	def update(self, timestamp, radiation, cpm):
@@ -68,10 +66,16 @@ class MySQLUpdater(dummy.DummyUpdater):
 		"""
 		import MySQLdb
 		try:
-			cursor = self._db.cursor()
+			db = MySQLdb.connect(host = self._dbHost, user = self._dbUser,
+				passwd = self._dbPassword, db = self._dbName)
+
+			cursor = db.cursor()
 			strTime = time.strftime('%Y-%m-%d %H:%M:%S', self.localTime(timestamp))
 			cursor.execute("insert into " + self._tableName + "(radiation, cpm, time) values (%s, %s, %s)",
 				(float(radiation), float(cpm), strTime))
 			cursor.close()
+			db.commit()
+			db.close()
+
 		except MySQLdb.Error as e:
 			raise MySQLUpdaterException("Could not insert new row to the table: " + str(e))
