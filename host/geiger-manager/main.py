@@ -15,7 +15,7 @@ import signal
 import time
 import logging
 
-__version__ = '1.0'
+__version__ = '1.1'
 __author__ = 'Michał Słomkowski'
 __copyright__ = 'GNU GPL v.3.0'
 
