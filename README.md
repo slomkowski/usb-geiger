@@ -7,7 +7,7 @@ License: GNU GPL v3.0.
 
 This is a repository of a low-cost USB Geiger counter device using STS-5 tube, ATTiny24 and Python-written host software.
 
-Results can be sent to MySQL database, CSV file or xively.com.
+Results can be sent to MySQL database, CSV file, xively.com or defined e-mail address if the radiation is higher than the defined level.
 
 Graphs from my personal Geiger device are available at:
 https://xively.com/feeds/120299/
