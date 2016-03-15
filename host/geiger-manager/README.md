@@ -20,6 +20,13 @@ python2 main.py -mb
 
 geiger.sh is a startup script for Debian and derivative systems (like Raspbian). View that file and read the description within to get to know how to use it.
 
+Installation under Debian 8
+===========================
+
+```
+apt-get -t jessie-backports install python-usb
+```
+
 Running on Windows
 ==================
 
