@@ -1,5 +1,4 @@
-USB Geiger counter
-==================
+# Licznik Geigera USB
 
 2013 Michał Słomkowski
 
@@ -7,10 +6,9 @@ Licencja GNU GPL wersja 3.0.
 
 Repozytorium główne projektu prostego licznika Geigera na USB opartego o czujnik STS-5, ATTiny24 i oprogramowanie hosta napisane w Pythonie.
 
-Wyniki mogą być publikowane w serwisie xively.com, wysyłane do pliku CSV (który można zaimportować do Excela), bazy MySQLa lub e-mailem do zdefiniowanych osób, jeżeli poziom promieniowania przekroczy bezpieczny poziom.
+~~Wyniki mogą być publikowane w serwisie xively.com~~, wysyłane do pliku CSV (który można zaimportować do Excela), bazy MySQLa lub e-mailem do zdefiniowanych osób, jeżeli poziom promieniowania przekroczy bezpieczny poziom.
 
-Wykresy natężenia promieniowania dostępne pod:
-https://xively.com/feeds/120299
+Szczegółowy opis licznika opublikowano w *Elektronice dla Wszystkich* 10/2013, artykuł jest [dostępny online](https://serwis.avt.pl/manuals/AVT3074.pdf).
 
 Repozytorium zawiera:
 * *datasheets* - noty katalogowe podzespołów wykorzystywanych w projekcie, szczególnie detektora STS-5,
