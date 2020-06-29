@@ -1,9 +1,0 @@
-eclipse.preferences.version=1
-encoding//updaters/cosm.py=utf-8
-encoding//updaters/csvfile.py=utf-8
-encoding//updaters/dummy.py=utf-8
-encoding//updaters/email.py=utf-8
-encoding//updaters/mysql.py=utf-8
-encoding/main.py=utf-8
-encoding/monitor.py=utf-8
-encoding/usbcomm.py=utf-8

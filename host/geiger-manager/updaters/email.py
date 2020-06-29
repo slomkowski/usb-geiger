@@ -1,108 +1,92 @@
 # -*- encoding: utf-8 -*-
-'''
+"""
  * USB Geiger counter manager
  * 2013 Michał Słomkowski
  * This code is distributed under the terms of GNU General Public License version 3.0.
-'''
+"""
 
-import dummy
-import time
-import ConfigParser
+import configparser
 import smtplib
+import time
 
-IDENTIFICATOR = 'SMTP e-mail notification'
+import updaters
 
-class EmailNotificationException(dummy.UpdaterException):
-	pass
-
-class EmailNotificationUpdater(dummy.DummyUpdater):
-	"""Sends the e-mail notifications to the addresses on the list if the radiation or CPM level exceeds
-	the given limit. You have to configure local SMTP server or use external one to use this module.
-	"""
-
-	_dateFormat = None
-	_timeFormat = None
-
-	_addressList = None
-	_messageSubject = None
-	_messageContent = None
-
-	_smtp_server = None
-	_smtp_port = None
-	_smtp_user = None
-	_smtp_password = None
-	_smtp_sender_email = None
-
-	_threshold = None
-
-	def __init__(self, configuration):
-		"""Reads configuration and sets up everything."""
-		confFileSection = 'email'
-		try:
-			self._enabled = configuration.getboolean(confFileSection, 'enabled')
-		except Exception:
-			pass
-		if self._enabled is False:
-			return
-
-		try:
-			self._dateFormat = configuration.get(confFileSection, 'date_format')
-			self._timeFormat = configuration.get(confFileSection, 'time_format')
-
-			self._addressList = configuration.get(confFileSection, 'addresses').split(';')
-			self._addressList = map(lambda x: x.strip(), self._addressList)
-
-			self._messageSubject = configuration.get(confFileSection, 'message_subject')
-			self._messageContent = configuration.get(confFileSection, 'message_content')
-
-			self._smtp_server = configuration.get(confFileSection, 'smtp_server')
-			self._smtp_port = int(configuration.get(confFileSection, 'smtp_port'))
-			self._smtp_user = configuration.get(confFileSection, 'smtp_user')
-			self._smtp_password = configuration.get(confFileSection, 'smtp_password')
-			self._smtp_sender_email = configuration.get(confFileSection, 'smtp_sender_email')
-
-			self._threshold = configuration.get(confFileSection, 'radiation_threshold')
-
-		except ConfigParser.Error as e:
-			self._enabled = False
-			raise EmailNotificationException("could not load all needed settings from the config file: " + str(e))
-
-	def _fillFields(self, tmpl, timestamp, radiation, cpm):
-		timestamp = self.localTime(timestamp)
-		currDate = time.strftime(self._dateFormat, timestamp)
-		currTime = time.strftime(self._timeFormat, timestamp)
-
-		replaces = {'$date$' : currDate, '$time$' : currTime, '$cpm$' : cpm,
-			'$radiation$' : radiation, '$threshold$' : self._threshold, '\\n' : '\n' }
-
-		for old in replaces:
-			tmpl = tmpl.replace(old, str(replaces[old]))
-
-		return tmpl
+IDENTIFIER = 'SMTP e-mail notification'
 
 
+class EmailNotificationException(updaters.UpdaterException):
+    pass
 
-	def update(self, timestamp, radiation, cpm):
-		"""If the radiation level exceeds the defined threshold, e-mails to all defined receivers are send.
-		"""
 
-		if radiation < float(self._threshold):
-			return
+class EmailNotificationUpdater(updaters.BaseUpdater):
+    """Sends the e-mail notifications to the addresses on the list if the radiation or CPM level exceeds the given
+    limit. You have to configure local SMTP server or use external one to use this module. """
 
-		subject = self._fillFields(self._messageSubject, timestamp, radiation, cpm)
-		content = self._fillFields(self._messageContent, timestamp, radiation, cpm)
+    def __init__(self, configuration):
+        """Reads configuration and sets up everything."""
+        super().__init__(configuration)
+        conf_file_section = 'email'
+        try:
+            self._enabled = configuration.getboolean(conf_file_section, 'enabled')
+        except Exception:
+            pass
+        if self._enabled is False:
+            return
 
-		try:
-			smtpserver = smtplib.SMTP(self._smtp_server, self._smtp_port)
-			smtpserver.ehlo()
-			smtpserver.starttls()
-			smtpserver.ehlo
-			smtpserver.login(self._smtp_user, self._smtp_password)
+        try:
+            self._date_format = configuration.get(conf_file_section, 'date_format')
+            self._time_format = configuration.get(conf_file_section, 'time_format')
 
-			for address in self._addressList:
-				header = 'To:' + address + '\n' + 'From: ' + self._smtp_sender_email + '\n' + 'Subject:' + subject + '\n\n'
-				smtpserver.sendmail(self._smtp_sender_email, address, header + content)
+            self._address_list = configuration.get(conf_file_section, 'addresses').split(';')
+            self._address_list = map(lambda x: x.strip(), self._address_list)
 
-			smtpserver.close()
-		except Exception as e:
-			raise EmailNotificationException("Failed to send notification e-mail: " + str(e))
+            self._message_subject = configuration.get(conf_file_section, 'message_subject')
+            self._messageContent = configuration.get(conf_file_section, 'message_content')
+
+            self._smtp_server = configuration.get(conf_file_section, 'smtp_server')
+            self._smtp_port = int(configuration.get(conf_file_section, 'smtp_port'))
+            self._smtp_user = configuration.get(conf_file_section, 'smtp_user')
+            self._smtp_password = configuration.get(conf_file_section, 'smtp_password')
+            self._smtp_sender_email = configuration.get(conf_file_section, 'smtp_sender_email')
+
+            self._threshold = configuration.get(conf_file_section, 'radiation_threshold')
+
+        except configparser.Error as e:
+            self._enabled = False
+            raise EmailNotificationException("could not load all needed settings from the config file: " + str(e))
+
+    def _fill_fields(self, tmpl, timestamp, radiation, cpm):
+        timestamp = self.local_time(timestamp)
+        curr_date = time.strftime(self._date_format, timestamp)
+        curr_time = time.strftime(self._time_format, timestamp)
+
+        replaces = {'$date$': curr_date, '$time$': curr_time, '$cpm$': cpm,
+                    '$radiation$': radiation, '$threshold$': self._threshold, '\\n': '\n'}
+
+        for old in replaces:
+            tmpl = tmpl.replace(old, str(replaces[old]))
+
+        return tmpl
+
+    def update(self, timestamp, radiation=None, cpm=None):
+        """If the radiation level exceeds the defined threshold, e-mails to all defined receivers are send."""
+
+        if radiation < float(self._threshold):
+            return
+
+        subject = self._fill_fields(self._message_subject, timestamp, radiation, cpm)
+        content = self._fill_fields(self._messageContent, timestamp, radiation, cpm)
+
+        try:
+            with smtplib.SMTP(self._smtp_server, self._smtp_port) as smtp_server:
+                smtp_server.ehlo()
+                smtp_server.starttls()
+                smtp_server.ehlo()
+                smtp_server.login(self._smtp_user, self._smtp_password)
+
+                for address in self._address_list:
+                    header = 'To:' + address + '\n' + 'From: ' + self._smtp_sender_email + '\n' + 'Subject:' + subject + '\n\n'
+                    smtp_server.sendmail(self._smtp_sender_email, address, header + content)
+
+        except Exception as e:
+            raise EmailNotificationException("Failed to send notification e-mail: " + str(e))

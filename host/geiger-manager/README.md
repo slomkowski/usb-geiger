@@ -16,11 +16,11 @@ Optional arguments:
                         default)
 
 To start measuring as a daemon, type:
-python2 main.py -mb
+python3 main.py -mb
 
 geiger.sh is a startup script for Debian and derivative systems (like Raspbian). View that file and read the description within to get to know how to use it.
 
 Running on Windows
 ==================
 
-This program needs Python 2.7 and libraries: pyusb, libusb and MySQL-python if MySQL module will be used.
+This program needs Python 3.5 and libraries: pyusb, libusb and MySQL-python if MySQL module will be used.
