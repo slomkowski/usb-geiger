@@ -1,16 +1,14 @@
 # -*- encoding: utf-8 -*-
-'''
+"""
  * USB Geiger counter manager
- * 2013 Michał Słomkowski
+ * 2013, 2020 Michał Słomkowski
  * This code is distributed under the terms of GNU General Public License version 3.0.
-'''
+"""
 
 import configparser
 import time
 
 import updaters
-
-IDENTIFIER = 'MySQL'
 
 
 class MySQLUpdaterException(updaters.UpdaterException):
@@ -21,47 +19,45 @@ class MySQLUpdater(updaters.BaseUpdater):
     """Inserts data to MySQL table given. The table has to have columns named 'cpm', 'radiation' and 'time'. Connects
     the database each time. """
 
+    conf_file_section = 'mysql'
+    full_name = "MySQL"
+
     def __init__(self, configuration):
         """Reads configuration from the file and starts the connection with the database. The connection is held
         during the whole program runtime. """
         super().__init__(configuration)
-        conf_file_section = 'mysql'
         try:
-            self._enabled = configuration.getboolean(conf_file_section, 'enabled')
+            self._enabled = configuration.getboolean(self.conf_file_section, 'enabled')
         except Exception:
             pass
         if self._enabled is False:
             return
         try:
-            self._dbName = configuration.get(conf_file_section, 'db_name')
-            self._dbUser = configuration.get(conf_file_section, 'user')
-            self._dbPassword = configuration.get(conf_file_section, 'password')
-            self._dbHost = configuration.get(conf_file_section, 'host')
-            self._tableName = configuration.get(conf_file_section, 'table_name')
+            self._dbName = configuration.get(self.conf_file_section, 'db_name')
+            self._dbUser = configuration.get(self.conf_file_section, 'user')
+            self._dbPassword = configuration.get(self.conf_file_section, 'password')
+            self._dbHost = configuration.get(self.conf_file_section, 'host')
+            self._tableName = configuration.get(self.conf_file_section, 'table_name')
         except configparser.Error as e:
             self._enabled = False
             raise MySQLUpdaterException(str(e) + ". data is incomplete.")
 
-        # import is  here to don't throw exceptions about missing MySQLdb odules if they're not used
-        import MySQLdb
+        # import is  here to don't throw exceptions about missing MySQLdb modules if they're not used
+        import pymysql
 
         try:
-            db = MySQLdb.connect(host=self._dbHost, user=self._dbUser,
+            db = pymysql.connect(host=self._dbHost, user=self._dbUser,
                                  passwd=self._dbPassword, db=self._dbName)
             db.close()
-        except MySQLdb.Error as e:
+        except pymysql.Error as e:
             self._enabled = False
             raise MySQLUpdaterException(str(e) + ". Connection failed.")
 
-    def close(self):
-        """Disconnects the database."""
-        self._enabled = False
-
     def update(self, timestamp, radiation=None, cpm=None):
         """Inserts new row to the database table. Both radiation and CPM have to be provided."""
-        import MySQLdb
+        import pymysql
         try:
-            db = MySQLdb.connect(host=self._dbHost, user=self._dbUser,
+            db = pymysql.connect(host=self._dbHost, user=self._dbUser,
                                  passwd=self._dbPassword, db=self._dbName)
 
             cursor = db.cursor()
@@ -72,5 +68,5 @@ class MySQLUpdater(updaters.BaseUpdater):
             db.commit()
             db.close()
 
-        except MySQLdb.Error as e:
+        except pymysql.Error as e:
             raise MySQLUpdaterException("Could not insert new row to the table: " + str(e))

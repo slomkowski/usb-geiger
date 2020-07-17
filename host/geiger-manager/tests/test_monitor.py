@@ -1,15 +1,16 @@
 import configparser
-import unittest
 import time
-import updaters
+import unittest
 from unittest import TestCase
 from unittest.mock import patch
 
 import monitor
-import usbcomm
+import updaters
+
 
 class DummyUpdater(updaters.BaseUpdater):
-    pass
+    full_name = "updater used in tests only"
+
 
 class TestMonitor(TestCase):
 

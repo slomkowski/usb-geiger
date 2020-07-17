@@ -10,13 +10,12 @@ import argparse
 import configparser
 import logging
 import os
-import signal
 import sys
 import time
 
 import usbcomm
 
-__version__ = '1.2.0'
+__version__ = '2.0.0'
 __author__ = 'Michał Słomkowski'
 __copyright__ = 'GNU GPL v.3.0'
 
@@ -27,29 +26,16 @@ CONFIG_PATH = [".", os.path.dirname(__file__), os.path.expanduser("~/.geiger"), 
 
 CONFIG_PATH = [os.path.realpath(os.path.join(directory, CONFIG_FILE_NAME)) for directory in CONFIG_PATH]
 
-
-def signal_handler(signum, frame):
-    """Handles stopping signals, closes all updaters and threads and exits."""
-    if args.monitor:
-        global logger
-        logger.info("Catched signal no. %d, stopping.", signum)
-        global monitor
-        monitor.stop()
-        logging.shutdown()
-        sys.exit(1)
-
-
 # parse command-line arguments
 description = "Geiger manager v. " + __version__ + ', ' + __author__ + ". "
 description += """This program is a daemon which monitors constantly the radiation measured by USB Geiger device
-and sends the results to cosm.com, MySQL database or CSV file. All configuration is stored in the file '"""
+and sends the results to radmon.org, MySQL database or CSV file. All configuration is stored in the file '"""
 description += CONFIG_FILE_NAME
 description += """' which is essential to run. Program uses pyusb library and MySQLdb, if MySQL is enabled."""
 
 parser = argparse.ArgumentParser(description=description)
 parser.add_argument("-c", "--config", nargs=1, help="reads given configuration file")
 parser.add_argument("-v", "--verbose", action='store_true', help="shows additional information")
-parser.add_argument("-b", "--background", action='store_true', help="runs as background process")
 group = parser.add_mutually_exclusive_group()
 group.add_argument("-m", "--monitor", action='store_true', help="starts program in monitor mode")
 group.add_argument("-s", "--status", action='store_true',
@@ -59,11 +45,6 @@ args = parser.parse_args()
 
 if args.verbose and not args.background:
     print("Geiger manager v. " + __version__ + ', ' + __author__)
-
-# become a daemon and fork
-if args.background:
-    if os.fork() != 0:
-        os._exit(0)
 
 if args.config:
     CONFIG_PATH = [args.config[0]]
@@ -102,10 +83,9 @@ if args.verbose:
 else:
     logger.setLevel(logging.ERROR)
 
-if not args.background:
-    consoleLog = logging.StreamHandler(sys.stdout)
-    consoleLog.setFormatter(logFormatter)
-    logger.addHandler(consoleLog)
+consoleLog = logging.StreamHandler(sys.stdout)
+consoleLog.setFormatter(logFormatter)
+logger.addHandler(consoleLog)
 
 if not args.monitor:
     loggingEnabled = False
@@ -127,20 +107,19 @@ except usbcomm.CommException as exp:
     logger.critical("Error at initializing USB device: %s", str(exp))
     sys.exit(1)
 
-# register SIGINT (Ctrl-C) signal handler
-signal.signal(signal.SIGINT, signal_handler)
-signal.signal(signal.SIGTERM, signal_handler)
-
 # start monitor mode
 if args.monitor:
     import monitor
 
-    monitor = monitor.Monitor(configuration=conf, usbcomm=comm)
-    monitor.start()
+    updaters = monitor.find_updaters(conf)
 
-    while True:
-        time.sleep(5)
+    monitor = monitor.Monitor(conf, comm, updaters)
+
+    while not monitor.error:
+        time.sleep(1)
+
+    logger.critical("Error in monitor: %s", monitor.error)
+    sys.exit(2)
 
 # default behavior: display values from Geiger device and leave
 print(comm)
-sys.exit()

@@ -59,8 +59,8 @@ class RawConnector(object):
 
     def _open_device(self):
         for dev in usb.core.find(idVendor=VENDOR_ID, idProduct=DEVICE_ID, find_all=True):
-            vendor_name = usb.util.get_string(dev, 256, dev.iManufacturer)
-            device_name = usb.util.get_string(dev, 256, dev.iProduct)
+            vendor_name = usb.util.get_string(dev, dev.iManufacturer)
+            device_name = usb.util.get_string(dev, dev.iProduct)
 
             if vendor_name == VENDOR_NAME and device_name == DEVICE_NAME:
                 self._device = dev
@@ -143,14 +143,8 @@ class RawConnector(object):
 class Connector(RawConnector):
     """This class wraps a RawCommunicator class to provide human-readable interface in standard units."""
 
-    _tubeSensitivity = TUBE_SENSITIVITY
-    _voltDividerFactor = VOLTAGE_DIVIDER_LOWER_RESISTOR / (
-            VOLTAGE_DIVIDER_LOWER_RESISTOR + VOLTAGE_DIVIDER_UPPER_RESISTOR)
-    _tubeVoltage = TUBE_VOLTAGE
-    _configuration = None
-
     def __init__(self, configuration=None):
-        """Optional parameter is configparser instance."""
+        """Optional parameter is ConfigParser instance."""
         super(Connector, self).__init__()
         if configuration is not None:
             self._configuration = configuration

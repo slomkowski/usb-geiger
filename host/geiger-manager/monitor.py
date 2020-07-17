@@ -6,78 +6,55 @@
 """
 
 import configparser
-import importlib
 import logging
-import os
-import sys
 import threading
 import time
+from collections import Iterator
 
 import updaters
 import usbcomm
+from updaters.csvfile import CsvFileUpdater
+from updaters.email import EmailNotificationUpdater
+from updaters.mysql import MySQLUpdater
+from updaters.radmon_org import RadmonOrgUpdater
+
+
+def find_updaters(configuration: configparser.ConfigParser) -> [updaters.BaseUpdater]:
+    # todo replace with dynamic module walking
+    return filter(lambda u: u.is_enabled(),
+                  [EmailNotificationUpdater(configuration),
+                   CsvFileUpdater(configuration),
+                   MySQLUpdater(configuration),
+                   RadmonOrgUpdater(configuration)])
 
 
 class Monitor(object):
-    _interval = None
-    _usbcomm = None
-    _log = False
-    _configuration = None
+    _conf_file_section = "monitor"
+    _log = logging.getLogger("geiger.monitor")
 
-    _timer = None
+    error: Exception = None
 
-    _updaters = []
+    def __init__(self,
+                 configuration: configparser.ConfigParser,
+                 comm: usbcomm.Connector,
+                 updaters_list: [updaters.BaseUpdater]):
+        self._usbcomm = comm
+        self._updaters = updaters_list
 
-    def __init__(self, configuration, usbcomm):
-        self._log = logging.getLogger("geiger.monitor")
-        self._usbcomm = usbcomm
-        self._configuration = configuration
-        conf_file_section = 'monitor'
+        if not self._updaters:
+            raise Exception("At least one updater has to be enabled.")
+
         try:
-            self._interval = configuration.getint(conf_file_section, 'interval')
+            self._interval = configuration.getint(self._conf_file_section, 'interval')
         except configparser.Error as e:
-            self._log.critical("Measuring interval wrong or not provided: %s.", str(e))
-            sys.exit(1)
+            raise Exception("Measuring interval wrong or not provided:", e)
 
         self._log.info("Setting programmed voltage and interval to %d seconds.", self._interval)
 
-        usbcomm.set_voltage_from_config_file()
-        usbcomm.set_interval(self._interval)
+        self._usbcomm.set_voltage_from_config_file()
+        self._usbcomm.set_interval(self._interval)
 
-        # initialize all updater modules in the directory
-        for files in os.listdir(os.path.join(os.path.dirname(__file__), "updaters")):
-            if files.endswith(".py"):
-                self._initialize_updater(files[:-3])
-
-        if len(self._updaters) == 0:
-            self._log.critical("At least one updater has to be enabled.")
-            sys.exit(1)
-
-    def _initialize_updater(self, import_name):
-        importlib.import_module("updaters." + import_name, "updaters")
-
-        module = sys.modules["updaters." + import_name]
-
-        for elem in getattr(module, '__dict__'):
-            if elem.endswith('Updater'):
-                class_name = elem
-
-        try:
-            name = getattr(module, 'IDENTIFIER')
-        except:
-            return
-        try:
-            u = getattr(module, class_name)(self._configuration)
-            if u.is_enabled():
-                self._updaters.append(u)
-                self._log.info("%s updater enabled.", name)
-        except updaters.updaters.UpdaterException as e:
-            self._log.error("Error at initializing %s updater: %s. Disabling.", name, str(e))
-
-    def start(self):
-        """Enables cyclic monitoring. The first measurement cycle has the 1.5 length of the given interval in order
-        to collect data by the device. """
-
-        self._timer = threading.Timer(1.5 * self._interval, self._update)
+        self._timer = threading.Timer(1.5 * self._interval, self._perform_update_every_tick)
         self._timer.setDaemon(True)
         self._timer.start()
 
@@ -91,12 +68,12 @@ class Monitor(object):
             if updater.is_enabled():
                 updater.close()
 
-    def _update(self):
+    def _perform_update_every_tick(self):
         """This method is called by the internal timer every 'interval' time to gather measurements and send them to
         specified updaters. The first cycle has 1.5*interval length to give the Geiger device time to collect counts.
-        Then, update takes place in the middle of the next measuring cycle. """
+        Then, update takes place in the middle of the next measuring cycle."""
 
-        self._timer = threading.Timer(self._interval, self._update)
+        self._timer = threading.Timer(self._interval, self._perform_update_every_tick)
         self._timer.setDaemon(True)
         # start new cycle here to prevent shifting next update time stamp
         self._timer.start()
@@ -116,19 +93,19 @@ class Monitor(object):
             except usbcomm.CommException as e:
                 self._log.critical("Error at reinitializing device: %s", str(e))
                 self.stop()
-                # close entire application
-                thread.interrupt_main()
+                self.error = e
+                return
 
             self._timer.cancel()
-            self._timer = threading.Timer(1.5 * self._interval, self._update)
+            self._timer = threading.Timer(1.5 * self._interval, self._perform_update_every_tick)
             self._timer.setDaemon(True)
             self._timer.start()
             return
 
-        self._log.info("pushing data: %f CPM, %f uSv/h", cpm, radiation)
+        self._log.info("Pushing data: %f CPM, %f uSv/h", cpm, radiation)
 
         for updater in self._updaters:
             try:
                 updater.update(timestamp=timestamp, radiation=radiation, cpm=cpm)
-            except updaters.updaters.UpdaterException as exp:
+            except updaters.UpdaterException as exp:
                 self._log.error("Updater error: %s", str(exp))

@@ -11,8 +11,6 @@ import time
 
 import updaters
 
-IDENTIFIER = 'SMTP e-mail notification'
-
 
 class EmailNotificationException(updaters.UpdaterException):
     pass
@@ -21,6 +19,8 @@ class EmailNotificationException(updaters.UpdaterException):
 class EmailNotificationUpdater(updaters.BaseUpdater):
     """Sends the e-mail notifications to the addresses on the list if the radiation or CPM level exceeds the given
     limit. You have to configure local SMTP server or use external one to use this module. """
+
+    full_name = "SMTP e-mail notification"
 
     def __init__(self, configuration):
         """Reads configuration and sets up everything."""

@@ -12,14 +12,14 @@ import urllib.parse
 
 import updaters
 
-IDENTIFIER = 'radmon.org updater'
-
 
 class RadmonOrgException(updaters.UpdaterException):
     pass
 
 
 class RadmonOrgUpdater(updaters.BaseUpdater):
+    full_name = "radmon.org"
+
     def __init__(self, configuration):
         super().__init__(configuration)
         conf_file_section = 'radmon.org'

@@ -49,3 +49,7 @@ class BaseUpdater(abc.ABC):
         """Sends data wherever they are sent. Both parameters are optional. Raises exception if no data was
         delivered. """
         raise NotImplementedError
+
+    @property
+    def full_name(self):
+        raise NotImplementedError
