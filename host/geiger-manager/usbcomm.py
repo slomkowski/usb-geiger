@@ -7,6 +7,7 @@
 
 import configparser
 import logging
+import os
 
 import usb.core
 import usb.util
@@ -52,6 +53,8 @@ class RawConnector(object):
 
     _device = None
 
+    _log = logging.getLogger("geiger.usbcomm")
+
     def __init__(self):
         """Initiates the class and opens the device. Warning! The constructor assumes that only one Geiger device is
         connected to the bus. Otherwise, it opens the first-found one. """
@@ -68,6 +71,15 @@ class RawConnector(object):
 
         if self._device is None:
             raise CommException("Geiger device not found")
+
+        if os.name != 'nt' and self._device.is_kernel_driver_active(0):
+            try:
+                self._device.detach_kernel_driver(0)
+                self._log.debug("kernel driver detached")
+            except usb.core.USBError as e:
+                raise CommException("Could not detach kernel driver", e)
+
+        self._device.set_configuration()
 
     def reset_connection(self):
         """Forces the device to reset and discovers it one more time."""
