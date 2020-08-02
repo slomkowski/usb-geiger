@@ -21,11 +21,11 @@ from updaters.radmon_org import RadmonOrgUpdater
 
 def find_updaters(configuration: configparser.ConfigParser) -> [updaters.BaseUpdater]:
     # todo replace with dynamic module walking
-    return filter(lambda u: u.is_enabled(),
+    return list(filter(lambda u: u.is_enabled(),
                   [EmailNotificationUpdater(configuration),
                    CsvFileUpdater(configuration),
                    MySQLUpdater(configuration),
-                   RadmonOrgUpdater(configuration)])
+                   RadmonOrgUpdater(configuration)]))
 
 
 class Monitor(object):

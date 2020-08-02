@@ -24,3 +24,19 @@ Running on Windows
 ==================
 
 This program needs Python 3.5 and libraries: pyusb, libusb and MySQL-python if MySQL module will be used.
+
+
+## Buidling on Windows
+
+To install:
+* Python 3.6
+* http://sourceforge.net/projects/libusb-win32/files/libusb-win32-releases/1.2.6.0/
+
+
+
+
+```
+python3 -m venv venv
+call venv\Scripts\activate.bat
+
+```

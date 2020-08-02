@@ -12,25 +12,21 @@ import logging
 import os
 import sys
 import time
+import pathlib
 
 import usbcomm
+import utils
 
 __version__ = '2.0.0'
 __author__ = 'Michał Słomkowski'
 __copyright__ = 'GNU GPL v.3.0'
 
-# default config file name
-CONFIG_FILE_NAME = 'configuration.ini'
-# directories with configuration file
-CONFIG_PATH = [".", os.path.dirname(__file__), os.path.expanduser("~/.geiger"), "/etc/geiger"]
-
-CONFIG_PATH = [os.path.realpath(os.path.join(directory, CONFIG_FILE_NAME)) for directory in CONFIG_PATH]
 
 # parse command-line arguments
 description = "Geiger manager v. " + __version__ + ', ' + __author__ + ". "
 description += """This program is a daemon which monitors constantly the radiation measured by USB Geiger device
 and sends the results to radmon.org, MySQL database or CSV file. All configuration is stored in the file '"""
-description += CONFIG_FILE_NAME
+description += utils.CONFIG_FILE_NAME
 description += """' which is essential to run. Program uses pyusb library and MySQLdb, if MySQL is enabled."""
 
 parser = argparse.ArgumentParser(description=description)
@@ -43,31 +39,9 @@ group.add_argument("-s", "--status", action='store_true',
 
 args = parser.parse_args()
 
-if args.verbose and not args.background:
-    print("Geiger manager v. " + __version__ + ', ' + __author__)
+logging.info("Geiger manager v. " + __version__ + ', ' + __author__)
 
-if args.config:
-    CONFIG_PATH = [args.config[0]]
-    if args.verbose and not args.background:
-        print("Using configuration file '%s'" % args.config[0])
-
-# load configuration file
-conf = configparser.ConfigParser()
-
-configuration_loaded = False
-for filePath in CONFIG_PATH:
-    try:
-        conf.read(filePath)
-        configuration_loaded = True
-        if args.verbose and not args.background:
-            print("Configuration file loaded from: " + filePath)
-        break
-    except IOError:
-        configuration_loaded = False
-
-if not configuration_loaded:
-    print("Error at loading configuration file.", file=sys.stderr)
-    sys.exit(1)
+conf = utils.load_configuration(pathlib.Path(args.config[0]) if args.config else None)
 
 try:
     loggingEnabled = conf.getboolean('general', 'log_enabled')
