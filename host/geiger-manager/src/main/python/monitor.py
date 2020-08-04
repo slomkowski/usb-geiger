@@ -9,7 +9,6 @@ import configparser
 import logging
 import threading
 import time
-from collections import Iterator
 
 import updaters
 import usbcomm
@@ -22,10 +21,10 @@ from updaters.radmon_org import RadmonOrgUpdater
 def find_updaters(configuration: configparser.ConfigParser) -> [updaters.BaseUpdater]:
     # todo replace with dynamic module walking
     return list(filter(lambda u: u.is_enabled(),
-                  [EmailNotificationUpdater(configuration),
-                   CsvFileUpdater(configuration),
-                   MySQLUpdater(configuration),
-                   RadmonOrgUpdater(configuration)]))
+                       [EmailNotificationUpdater(configuration),
+                        CsvFileUpdater(configuration),
+                        MySQLUpdater(configuration),
+                        RadmonOrgUpdater(configuration)]))
 
 
 class Monitor(object):

@@ -9,13 +9,11 @@
 import argparse
 import configparser
 import logging
-import os
 import sys
 import time
 import pathlib
 
-import usbcomm
-import utils
+from src.main.python import utils, usbcomm
 
 __version__ = '2.0.0'
 __author__ = 'Michał Słomkowski'

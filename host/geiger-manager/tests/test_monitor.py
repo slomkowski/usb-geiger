@@ -5,7 +5,7 @@ from unittest import TestCase
 from unittest.mock import patch
 
 import monitor
-import updaters
+from src.main.python import updaters
 
 
 class DummyUpdater(updaters.BaseUpdater):

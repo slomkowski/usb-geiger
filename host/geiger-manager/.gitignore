@@ -1,7 +1,7 @@
 /configuration.ini
 /test-configuration.ini
 /readings.csv
-/logging.log
+*.log
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
@@ -13,8 +13,8 @@ __pycache__/
 
 # Distribution / packaging
 .Python
-build/
-develop-eggs/
+/build/
+/develop-eggs/
 dist/
 downloads/
 eggs/

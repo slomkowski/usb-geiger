@@ -30,8 +30,8 @@ This program needs Python 3.5 and libraries: pyusb, libusb and MySQL-python if M
 
 To install:
 * Python 3.6
-* http://sourceforge.net/projects/libusb-win32/files/libusb-win32-releases/1.2.6.0/
-
+* libusb - http://sourceforge.net/projects/libusb-win32/files/libusb-win32-releases/1.2.6.0/
+* Visual C++ Redistributable for Visual Studio 2010  - https://www.microsoft.com/en-us/download/details.aspx?id=14632
 
 
 
@@ -39,4 +39,19 @@ To install:
 python3 -m venv venv
 call venv\Scripts\activate.bat
 
+pip install pyusb PyQt5==5.9.2 fbs
+
 ```
+
+To run the application:
+
+```
+fbs run
+```
+
+
+```
+set PATH=%PATH%;C:\Windows\System32\downlevel;
+fbs freeze
+```
+
