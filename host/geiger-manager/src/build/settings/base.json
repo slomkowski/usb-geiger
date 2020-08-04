@@ -1,7 +1,6 @@
 {
-    "app_name": "Geiger Manager",
-    "author": "Michał Słomkowski",
-    "main_module": "src/main/python/main.py",
-    "version": "0.0.0",
-    "hidden_imports": ["usbcomm"]
+  "app_name": "Geiger Manager",
+  "author": "Michał Słomkowski",
+  "main_module": "src/main/python/main.py",
+  "version": "0.0.0"
 }

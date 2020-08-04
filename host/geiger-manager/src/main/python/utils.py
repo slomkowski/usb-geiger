@@ -23,4 +23,4 @@ def load_configuration(custom_path: pathlib.Path = None) -> configparser.ConfigP
         else:
             logging.debug("Skipping %s configuration file, because it doesn't exist.", config_path)
 
-    raise Exception("No configuration file exists.")
+    raise Exception("no configuration file exists")

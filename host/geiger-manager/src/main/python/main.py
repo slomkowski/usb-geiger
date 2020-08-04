@@ -1,6 +1,6 @@
-import logging
 import sys
 import time
+import traceback
 
 from PyQt5.QtGui import QIcon
 from PyQt5.QtWidgets import QSystemTrayIcon, QMenu, QMessageBox
@@ -50,9 +50,9 @@ if __name__ == '__main__':
         comm = usbcomm.Connector(conf)
         monitor = monitor.Monitor(conf, comm, updaters)
     except Exception as e:
-        logging.critical("Closing application because of initialization error.", exc_info=e)
+        tb = traceback.format_exc()
         QMessageBox.critical(None, "Geiger Manager error",
-                             "Error initializing Geiger Manager: %s. Closing application." % e)
+                             "Error initializing Geiger Manager: %s. Closing application.\n\n%s" % (e, tb))
         sys.exit(1)
 
     exit_code = application_context.app.exec_()
